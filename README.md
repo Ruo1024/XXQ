@@ -6,10 +6,20 @@
 
 - Three.js 全屏 3D 立体画廊
 - GSAP ScrollTrigger 滚动镜头叙事
-- Raycaster 封面悬停、发光、点击进入画册
+- Raycaster 封面悬停、发光、点击镜头聚焦
 - 粒子、雾效、Bloom 后期视觉
-- 画册详情页、图片切换与响应式布局
+- 大跨度作品跳转短路径镜头
+- 聚焦卡片鼠标方向跟随微交互
+- 响应式桌面与移动端布局
 - 声音开关与轻量交互反馈
+
+## 在线地址
+
+GitHub Pages 部署后访问：
+
+```text
+https://ruo1024.github.io/XXQ/
+```
 
 ## 运行
 
@@ -25,3 +35,7 @@ export PATH=/Users/ruo/.cache/codex-runtimes/codex-primary-runtime/dependencies/
 /Users/ruo/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/pnpm install
 /Users/ruo/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/pnpm dev
 ```
+
+## 部署
+
+推送到 `main` 后，GitHub Actions 会自动构建并部署到 GitHub Pages。部署配置在 `.github/workflows/deploy-pages.yml`。
