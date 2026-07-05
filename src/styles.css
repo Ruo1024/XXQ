@@ -57,6 +57,7 @@ button {
   gap: 18px;
   padding: 20px clamp(18px, 4vw, 54px);
   pointer-events: none;
+  transition: opacity 220ms ease;
 }
 
 .brand,
@@ -156,8 +157,7 @@ button {
 }
 
 .intro-panel,
-.work-panel,
-.credits-panel {
+.work-panel {
   position: fixed;
   pointer-events: auto;
   border: 1px solid rgba(255, 255, 255, 0.13);
@@ -235,9 +235,7 @@ button {
   padding: 22px;
 }
 
-.work-panel h2,
-.album-copy h2,
-.credits-panel h2 {
+.work-panel h2 {
   margin: 0 0 10px;
   color: #ffffff;
   font-size: clamp(24px, 3vw, 34px);
@@ -251,24 +249,21 @@ button {
   font-size: 13px;
 }
 
-#workDescription,
-#albumDescription {
+#workDescription {
   margin: 0;
   color: rgba(248, 250, 252, 0.76);
   font-size: 14px;
   line-height: 1.72;
 }
 
-.work-tags,
-.album-specs {
+.work-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 18px;
 }
 
-.work-tags span,
-.album-specs span {
+.work-tags span {
   display: inline-flex;
   align-items: center;
   min-height: 28px;
@@ -346,46 +341,12 @@ button {
   outline: none;
 }
 
-.credits-panel {
-  left: clamp(18px, 4vw, 56px);
-  bottom: clamp(28px, 7vh, 82px);
-  width: min(430px, calc(100vw - 36px));
-  padding: 22px;
+.is-focused .intro-panel,
+.is-focused .work-panel,
+.is-focused .progress-rail,
+.is-focused .topbar {
   opacity: 0;
   pointer-events: none;
-  transform: translate3d(0, 18px, 0);
-  will-change: opacity, transform;
-}
-
-.is-final-stage .intro-panel,
-.is-final-stage .work-panel,
-.is-final-stage .progress-rail {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.credits-panel dl {
-  display: grid;
-  gap: 14px;
-  margin: 0;
-}
-
-.credits-panel div {
-  display: grid;
-  gap: 4px;
-}
-
-.credits-panel dt {
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.credits-panel dd {
-  margin: 0;
-  color: rgba(248, 250, 252, 0.68);
-  font-size: 13px;
-  line-height: 1.6;
 }
 
 .hover-label {
@@ -408,112 +369,6 @@ button {
 
 .hover-label.is-visible {
   opacity: 1;
-}
-
-.album-view {
-  position: fixed;
-  z-index: 50;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: clamp(16px, 4vw, 56px);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 240ms ease;
-}
-
-.album-open .album-view {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.album-open {
-  overflow: hidden;
-}
-
-.album-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(4, 4, 5, 0.78);
-  backdrop-filter: blur(16px);
-}
-
-.album-panel {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(310px, 0.75fr);
-  align-items: center;
-  gap: clamp(20px, 4vw, 42px);
-  width: min(1180px, 100%);
-  min-height: 0;
-  padding: clamp(14px, 2vw, 22px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(11, 11, 13, 0.72);
-  box-shadow: 0 32px 110px rgba(0, 0, 0, 0.52);
-}
-
-.album-stage {
-  position: relative;
-  overflow: hidden;
-  aspect-ratio: 16 / 10;
-  min-height: 0;
-  background: #09090a;
-}
-
-.album-stage img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0;
-  transform: scale(1.035);
-  transition:
-    opacity 260ms ease,
-    transform 480ms ease;
-}
-
-.album-stage img.is-ready {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.album-screen-glow {
-  position: absolute;
-  inset: 0;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 0 90px rgba(255, 255, 255, 0.12);
-  pointer-events: none;
-}
-
-.album-copy {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  padding: 8px 4px 4px;
-}
-
-.album-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: auto;
-}
-
-.album-controls {
-  display: flex;
-  gap: 8px;
-}
-
-.album-count {
-  color: rgba(248, 250, 252, 0.62);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-#albumIndex {
-  margin-top: clamp(26px, 8vh, 84px);
 }
 
 .scroll-spacer {
@@ -546,24 +401,6 @@ button {
     bottom: auto;
     width: min(320px, calc(100vw - 36px));
   }
-
-  .credits-panel {
-    left: 18px;
-    bottom: 22px;
-  }
-
-  .album-panel {
-    grid-template-columns: 1fr;
-    align-content: start;
-    min-height: 0;
-    max-height: calc(100vh - 32px);
-    overflow: auto;
-  }
-
-  .album-stage {
-    aspect-ratio: 16 / 10;
-    min-height: 0;
-  }
 }
 
 @media (max-width: 620px) {
@@ -581,8 +418,7 @@ button {
   }
 
   .intro-panel,
-  .work-panel,
-  .credits-panel {
+  .work-panel {
     width: calc(100vw - 28px);
     padding: 18px;
   }
@@ -601,31 +437,13 @@ button {
     right: 14px;
   }
 
-  .credits-panel {
-    left: 14px;
-    bottom: 16px;
-  }
-
-  #workDescription,
-  #albumDescription {
+  #workDescription {
     font-size: 13px;
     line-height: 1.68;
   }
 
   .work-tags {
     display: none;
-  }
-
-  .album-view {
-    padding: 10px;
-  }
-
-  .album-panel {
-    padding: 12px;
-  }
-
-  .album-copy h2 {
-    font-size: 26px;
   }
 
   .primary-action {

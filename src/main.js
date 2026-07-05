@@ -7,8 +7,6 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
-  ArrowLeft,
-  ArrowRight,
   Play,
   Volume2,
   VolumeX,
@@ -94,7 +92,6 @@ const els = {
   canvas: document.querySelector('#galleryCanvas'),
   introPanel: document.querySelector('.intro-panel'),
   workPanel: document.querySelector('.work-panel'),
-  creditsPanel: document.querySelector('#credits'),
   openActiveWork: document.querySelector('#openActiveWork'),
   soundToggle: document.querySelector('#soundToggle'),
   workIndex: document.querySelector('#workIndex'),
@@ -105,16 +102,6 @@ const els = {
   railProgress: document.querySelector('#railProgress'),
   railItems: document.querySelector('#railItems'),
   hoverLabel: document.querySelector('#hoverLabel'),
-  albumView: document.querySelector('#albumView'),
-  closeAlbum: document.querySelector('#closeAlbum'),
-  prevImage: document.querySelector('#prevImage'),
-  nextImage: document.querySelector('#nextImage'),
-  albumImage: document.querySelector('#albumImage'),
-  albumCount: document.querySelector('#albumCount'),
-  albumIndex: document.querySelector('#albumIndex'),
-  albumTitle: document.querySelector('#albumTitle'),
-  albumDescription: document.querySelector('#albumDescription'),
-  albumSpecs: document.querySelector('#albumSpecs'),
 };
 
 class GalleryExperience {
@@ -122,27 +109,37 @@ class GalleryExperience {
     this.timer = new THREE.Timer();
     this.timer.connect(document);
     this.pointer = new THREE.Vector2(10, 10);
+    this.clickPointer = new THREE.Vector2();
     this.raycaster = new THREE.Raycaster();
     this.coverMeshes = [];
     this.activeIndex = 0;
-    this.albumImageIndex = 0;
+    this.focusedIndex = null;
+    this.focusBlend = 0;
     this.hovered = null;
     this.scrollProgress = 0;
     this.soundEnabled = false;
     this.audio = null;
-    this.albumAssets = new Map();
     this.cameraTarget = new THREE.Vector3(0, 1.7, 0);
+    this.galleryViewPosition = new THREE.Vector3();
+    this.galleryViewTarget = new THREE.Vector3();
+    this.focusViewPosition = new THREE.Vector3();
+    this.focusViewTarget = new THREE.Vector3();
+    this.desiredCameraPosition = new THREE.Vector3();
+    this.desiredCameraTarget = new THREE.Vector3();
+    this.routeCurveStart = new THREE.Vector3();
+    this.routeCurveEnd = new THREE.Vector3();
+    this.tmpQuaternion = new THREE.Quaternion();
+    this.tmpNormal = new THREE.Vector3();
     this.galleryProgress = 0;
-    this.finalProgress = 0;
+    this.motionProgress = 0;
+    this.presentationProgress = 0;
+    this.jumpRoute = null;
     this.cardGroups = [];
-    this.cardMaterials = [];
   }
 
   init() {
     createIcons({
       icons: {
-        ArrowLeft,
-        ArrowRight,
         Play,
         Volume2,
         VolumeX,
@@ -221,6 +218,9 @@ class GalleryExperience {
       const card = new THREE.Group();
       card.position.set(x, 1.75, z);
       card.rotation.y = rotationY;
+      const visual = new THREE.Group();
+      card.add(visual);
+      card.userData.visual = visual;
       this.galleryGroup.add(card);
       this.cardGroups.push(card);
 
@@ -234,11 +234,10 @@ class GalleryExperience {
         metalness: 0.08,
         transparent: true,
       });
-      this.cardMaterials.push({ material: coverMaterial, baseOpacity: 1 });
       const cover = new THREE.Mesh(new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT), coverMaterial);
       cover.position.z = 0.04;
-      cover.userData = { work, index, baseScale: 1 };
-      card.add(cover);
+      cover.userData = { work, index, card, visual, baseScale: 1 };
+      visual.add(cover);
       this.coverMeshes.push(cover);
 
       const frameMaterial = new THREE.MeshStandardMaterial({
@@ -247,7 +246,6 @@ class GalleryExperience {
         metalness: 0.54,
         transparent: true,
       });
-      this.cardMaterials.push({ material: frameMaterial, baseOpacity: 1 });
       const horizontalFrame = new THREE.BoxGeometry(CARD_WIDTH + CARD_FRAME * 2, CARD_FRAME, 0.12);
       const verticalFrame = new THREE.BoxGeometry(CARD_FRAME, CARD_HEIGHT + CARD_FRAME * 2, 0.12);
       [
@@ -258,7 +256,7 @@ class GalleryExperience {
       ].forEach(([geometry, frameX, frameY]) => {
         const framePart = new THREE.Mesh(geometry, frameMaterial);
         framePart.position.set(frameX, frameY, 0);
-        card.add(framePart);
+        visual.add(framePart);
       });
 
       const glow = new THREE.Mesh(
@@ -271,9 +269,14 @@ class GalleryExperience {
           blending: THREE.AdditiveBlending,
         }),
       );
-      this.cardMaterials.push({ material: glow.material, baseOpacity: 0.08 });
       glow.position.z = -0.07;
-      card.add(glow);
+      visual.add(glow);
+
+      card.userData.materials = [
+        { material: coverMaterial, baseOpacity: 1 },
+        { material: frameMaterial, baseOpacity: 1 },
+        { material: glow.material, baseOpacity: 0.08 },
+      ];
     });
   }
 
@@ -437,7 +440,7 @@ class GalleryExperience {
       button.className = 'rail-item';
       button.innerHTML = `<span>${work.index}</span><strong>${work.title}</strong>`;
       button.addEventListener('click', () => {
-        this.scrollToProgress((index / Math.max(works.length - 1, 1)) * 0.88);
+        this.routeToProgress(index / Math.max(works.length - 1, 1));
       });
       els.railItems.appendChild(button);
     });
@@ -447,39 +450,44 @@ class GalleryExperience {
     window.addEventListener('resize', () => this.resize());
     window.addEventListener('pointermove', (event) => this.onPointerMove(event));
     window.addEventListener('pointerleave', () => this.clearHover());
-    window.addEventListener('click', () => {
-      if (this.hovered && !document.body.classList.contains('album-open')) {
-        this.openAlbum(this.hovered.userData.index);
+    window.addEventListener('wheel', () => this.cancelJumpRoute(), { passive: true });
+    window.addEventListener('touchstart', () => this.cancelJumpRoute(), { passive: true });
+    window.addEventListener('click', (event) => {
+      if (event.target.closest('button, a')) {
+        return;
+      }
+
+      if (this.focusedIndex !== null) {
+        this.clearFocus();
+        return;
+      }
+
+      const hit = this.getCoverHit(event.clientX, event.clientY);
+      if (hit) {
+        this.focusWork(hit.object.userData.index);
       }
     });
 
-    els.openActiveWork.addEventListener('click', () => this.openAlbum(this.activeIndex));
-    els.closeAlbum.addEventListener('click', () => this.closeAlbum());
-    els.prevImage.addEventListener('click', () => this.shiftAlbumImage(-1));
-    els.nextImage.addEventListener('click', () => this.shiftAlbumImage(1));
-    els.soundToggle.addEventListener('click', () => this.toggleSound());
-    document.querySelector('a[href="#credits"]')?.addEventListener('click', (event) => {
-      event.preventDefault();
-      this.scrollToProgress(1);
+    els.openActiveWork.addEventListener('click', () => {
+      if (this.focusedIndex !== null) {
+        this.clearFocus();
+        return;
+      }
+      this.focusWork(this.activeIndex);
     });
+    els.soundToggle.addEventListener('click', () => this.toggleSound());
     document.querySelector('a[href="#gallery"]')?.addEventListener('click', (event) => {
       event.preventDefault();
-      this.scrollToProgress(0);
+      this.routeToProgress(0);
     });
     document.querySelector('a[href="#collection"]')?.addEventListener('click', (event) => {
       event.preventDefault();
-      this.scrollToProgress(0.5);
+      this.routeToProgress(0.5);
     });
 
     window.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
-        this.closeAlbum();
-      }
-      if (document.body.classList.contains('album-open') && event.key === 'ArrowRight') {
-        this.shiftAlbumImage(1);
-      }
-      if (document.body.classList.contains('album-open') && event.key === 'ArrowLeft') {
-        this.shiftAlbumImage(-1);
+        this.clearFocus();
       }
     });
   }
@@ -491,21 +499,76 @@ class GalleryExperience {
       scrub: 1,
       onUpdate: (self) => {
         this.scrollProgress = self.progress;
-        this.galleryProgress = THREE.MathUtils.clamp(self.progress / 0.88, 0, 1);
-        this.finalProgress = THREE.MathUtils.smoothstep(self.progress, 0.86, 0.98);
-        const index = Math.round(this.galleryProgress * (works.length - 1));
+        this.galleryProgress = THREE.MathUtils.clamp(self.progress, 0, 1);
+        const scrollIndex = Math.round(this.galleryProgress * (works.length - 1));
+        const index = this.focusedIndex ?? scrollIndex;
         this.updateWorkPanel(index, this.galleryProgress);
-        this.updateFinalStage();
       },
     });
   }
 
-  scrollToProgress(progress) {
+  routeToProgress(progress) {
+    const targetProgress = THREE.MathUtils.clamp(progress, 0, 1);
+    const targetIndex = Math.round(targetProgress * (works.length - 1));
+    const sourceIndex = this.focusedIndex ?? Math.round(this.motionProgress * (works.length - 1));
+    const distance = Math.abs(targetIndex - sourceIndex);
+
+    this.clearFocus();
+
+    if (distance <= 1) {
+      this.cancelJumpRoute();
+      this.scrollToProgress(targetProgress, 'smooth');
+      return;
+    }
+
+    this.startJumpRoute(targetProgress, targetIndex, distance);
+  }
+
+  scrollToProgress(progress, behavior = 'smooth') {
     const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
     window.scrollTo({
       top: maxScroll * THREE.MathUtils.clamp(progress, 0, 1),
-      behavior: 'smooth',
+      behavior,
     });
+    ScrollTrigger.update();
+  }
+
+  startJumpRoute(targetProgress, targetIndex, distance) {
+    const targetPosition = new THREE.Vector3();
+    const targetLookAt = new THREE.Vector3();
+    this.getGalleryViewForProgress(targetProgress, targetPosition, targetLookAt, 0);
+
+    const routeType = distance >= 3 ? 'skip' : 'bridge';
+    const midpoint = routeType === 'skip' ? 0.48 : 0.5;
+    const midPosition = this.camera.position.clone().lerp(targetPosition, midpoint);
+    midPosition.x *= routeType === 'skip' ? 0.16 : 0.35;
+    midPosition.y = Math.max(this.camera.position.y, targetPosition.y) + (routeType === 'skip' ? 0.92 : 0.52);
+
+    const midTarget = this.cameraTarget.clone().lerp(targetLookAt, midpoint);
+    midTarget.x *= routeType === 'skip' ? 0.22 : 0.45;
+    midTarget.y += routeType === 'skip' ? 0.24 : 0.12;
+
+    this.jumpRoute = {
+      elapsed: 0,
+      duration: THREE.MathUtils.clamp(0.62 + distance * 0.16, 0.82, 1.38),
+      startProgress: this.motionProgress,
+      targetProgress,
+      targetIndex,
+      routeType,
+      startPosition: this.camera.position.clone(),
+      startTarget: this.cameraTarget.clone(),
+      midPosition,
+      midTarget,
+      targetPosition,
+      targetLookAt,
+    };
+
+    this.scrollToProgress(targetProgress, 'auto');
+    this.updateWorkPanel(targetIndex, targetProgress);
+  }
+
+  cancelJumpRoute() {
+    this.jumpRoute = null;
   }
 
   onPointerMove(event) {
@@ -514,8 +577,15 @@ class GalleryExperience {
     els.hoverLabel.style.transform = `translate(${event.clientX + 18}px, ${event.clientY + 18}px)`;
   }
 
+  getCoverHit(clientX, clientY) {
+    this.clickPointer.set((clientX / window.innerWidth) * 2 - 1, -(clientY / window.innerHeight) * 2 + 1);
+    this.raycaster.setFromCamera(this.clickPointer, this.camera);
+    const [hit] = this.raycaster.intersectObjects(this.coverMeshes, false);
+    return hit ?? null;
+  }
+
   updateHover() {
-    if (document.body.classList.contains('album-open') || this.finalProgress > 0.4) {
+    if (this.focusedIndex !== null || this.focusBlend > 0.08) {
       this.clearHover();
       return;
     }
@@ -574,7 +644,7 @@ class GalleryExperience {
       item.classList.toggle('is-active', itemIndex === index);
     });
 
-    if (shouldAnimatePanel && !document.body.classList.contains('is-final-stage')) {
+    if (shouldAnimatePanel && this.focusedIndex === null) {
       els.workPanel.animate(
         [
           { opacity: 0.72, transform: 'translate3d(0, 8px, 0)' },
@@ -588,75 +658,24 @@ class GalleryExperience {
     }
   }
 
-  updateFinalStage() {
-    const finalVisible = this.finalProgress > 0.55;
-    const cardFade = 1 - THREE.MathUtils.smootherstep(this.finalProgress, 0.28, 0.78);
-    document.body.classList.toggle('is-final-stage', finalVisible);
-    els.creditsPanel.style.opacity = this.finalProgress.toFixed(3);
-    els.creditsPanel.style.transform = `translate3d(0, ${(1 - this.finalProgress) * 18}px, 0)`;
-    els.creditsPanel.style.pointerEvents = finalVisible ? 'auto' : 'none';
-    this.cardMaterials.forEach(({ material, baseOpacity }) => {
-      material.opacity = baseOpacity * cardFade;
-    });
-    this.cardGroups.forEach((group) => {
-      group.visible = cardFade > 0.02;
-    });
-  }
-
-  openAlbum(index) {
-    this.activeIndex = index;
-    this.albumImageIndex = 0;
-    const work = works[index];
-    this.ensureAlbumAssets(work);
-    this.applyAlbumContent(work);
-    document.body.classList.add('album-open');
-    els.albumView.setAttribute('aria-hidden', 'false');
+  focusWork(index) {
+    this.cancelJumpRoute();
+    this.focusedIndex = THREE.MathUtils.clamp(index, 0, works.length - 1);
+    this.clearHover();
+    this.updateWorkPanel(this.focusedIndex, this.galleryProgress);
+    this.scrollToProgress(this.focusedIndex / Math.max(works.length - 1, 1));
+    document.body.classList.add('is-focused');
+    els.openActiveWork.querySelector('span').textContent = '返回浏览';
     this.playPulse(140, 0.08);
   }
 
-  closeAlbum() {
-    if (!document.body.classList.contains('album-open')) {
+  clearFocus() {
+    if (this.focusedIndex === null) {
       return;
     }
-    document.body.classList.remove('album-open');
-    els.albumView.setAttribute('aria-hidden', 'true');
-  }
-
-  shiftAlbumImage(direction) {
-    const work = works[this.activeIndex];
-    this.ensureAlbumAssets(work);
-    const assets = this.albumAssets.get(work.id);
-    this.albumImageIndex = (this.albumImageIndex + direction + assets.length) % assets.length;
-    els.albumImage.classList.remove('is-ready');
-    window.setTimeout(() => this.applyAlbumImage(work), 90);
-    this.playPulse(direction > 0 ? 420 : 320, 0.05);
-  }
-
-  applyAlbumContent(work) {
-    els.albumIndex.textContent = work.index;
-    els.albumTitle.textContent = work.title;
-    els.albumDescription.textContent = work.description;
-    els.albumSpecs.innerHTML = work.specs.map((spec) => `<span>${spec}</span>`).join('');
-    this.applyAlbumImage(work);
-  }
-
-  applyAlbumImage(work) {
-    const assets = this.albumAssets.get(work.id);
-    const image = assets[this.albumImageIndex];
-    els.albumImage.src = image.url;
-    els.albumImage.alt = `${work.title} 画册图 ${this.albumImageIndex + 1}`;
-    els.albumCount.textContent = `${String(this.albumImageIndex + 1).padStart(2, '0')} / ${String(assets.length).padStart(2, '0')}`;
-    window.requestAnimationFrame(() => els.albumImage.classList.add('is-ready'));
-  }
-
-  ensureAlbumAssets(work) {
-    if (this.albumAssets.has(work.id)) {
-      return;
-    }
-    const assets = [0, 1, 2].map((frame) => ({
-      url: createAlbumImage(work, frame),
-    }));
-    this.albumAssets.set(work.id, assets);
+    this.focusedIndex = null;
+    document.body.classList.remove('is-focused');
+    els.openActiveWork.querySelector('span').textContent = '聚焦当前作品';
   }
 
   toggleSound() {
@@ -692,44 +711,169 @@ class GalleryExperience {
     oscillator.stop(now + 0.24);
   }
 
-  syncCamera(elapsed, delta) {
-    const segment = this.galleryProgress * (works.length - 1);
+  getGalleryViewForProgress(progress, outPosition, outTarget, pointerInfluence = 1) {
+    const clampedProgress = THREE.MathUtils.clamp(progress, 0, 1);
+    const segment = clampedProgress * (works.length - 1);
     const lowerIndex = Math.floor(segment);
     const upperIndex = Math.min(lowerIndex + 1, works.length - 1);
     const localProgress = THREE.MathUtils.smootherstep(segment - lowerIndex, 0, 1);
     const lowerWork = this.coverMeshes[lowerIndex] ?? this.coverMeshes[0];
     const upperWork = this.coverMeshes[upperIndex] ?? lowerWork;
-    const lowerPosition = lowerWork.parent.position;
-    const upperPosition = upperWork.parent.position;
+    const lowerPosition = lowerWork.userData.card.position;
+    const upperPosition = upperWork.userData.card.position;
     const focusX = THREE.MathUtils.lerp(lowerPosition.x, upperPosition.x, localProgress);
     const focusZ = THREE.MathUtils.lerp(lowerPosition.z, upperPosition.z, localProgress);
-    const finalEase = THREE.MathUtils.smootherstep(this.finalProgress, 0, 1);
-    const finalPullback = finalEase * 2.2;
-    const corridorSway = Math.sin(this.galleryProgress * Math.PI * 2) * 0.16;
+    const corridorSway = Math.sin(clampedProgress * Math.PI * 2) * 0.16;
     const galleryX = focusX * 0.16 + corridorSway;
-    const x = THREE.MathUtils.lerp(galleryX, 0, finalEase);
-    const y = 2.02 + Math.sin(this.galleryProgress * Math.PI * 2) * 0.12 + finalEase * 0.42;
-    const z = focusZ + 5.65 + finalPullback;
-    const pointerLift = this.pointer.y * 0.12;
-    const damping = 1 - Math.exp(-delta * 7.2);
+    const x = galleryX;
+    const y = 2.02 + Math.sin(clampedProgress * Math.PI * 2) * 0.12;
+    const z = focusZ + 5.65;
+    const pointerLift = this.pointer.y * 0.12 * pointerInfluence;
 
-    this.camera.position.x += (x + this.pointer.x * 0.14 - this.camera.position.x) * damping;
-    this.camera.position.y += (y + pointerLift - this.camera.position.y) * damping;
-    this.camera.position.z += (z - this.camera.position.z) * damping;
+    outPosition.set(x + this.pointer.x * 0.14 * pointerInfluence, y + pointerLift, z);
+    outTarget.set(focusX * 0.1, 1.68, focusZ - 0.35);
+  }
 
-    const desiredLookAt = new THREE.Vector3(
-      THREE.MathUtils.lerp(focusX * 0.1, 0, finalEase),
-      1.68 + finalEase * 0.12,
-      focusZ - 0.35,
-    );
-    this.cameraTarget.lerp(desiredLookAt, damping);
-    this.camera.lookAt(this.cameraTarget);
+  updateGalleryView(delta) {
+    if (this.jumpRoute) {
+      this.updateJumpRoute(delta);
+      return;
+    }
 
+    this.getGalleryViewForProgress(this.galleryProgress, this.galleryViewPosition, this.galleryViewTarget);
+    this.motionProgress = this.galleryProgress;
+    this.presentationProgress = this.galleryProgress;
+  }
+
+  updateJumpRoute(delta) {
+    const route = this.jumpRoute;
+    route.elapsed += delta;
+    const routeProgress = THREE.MathUtils.clamp(route.elapsed / route.duration, 0, 1);
+    const eased = THREE.MathUtils.smootherstep(routeProgress, 0, 1);
+
+    this.routeCurveStart.copy(route.startPosition).lerp(route.midPosition, eased);
+    this.routeCurveEnd.copy(route.midPosition).lerp(route.targetPosition, eased);
+    this.galleryViewPosition.copy(this.routeCurveStart).lerp(this.routeCurveEnd, eased);
+
+    this.routeCurveStart.copy(route.startTarget).lerp(route.midTarget, eased);
+    this.routeCurveEnd.copy(route.midTarget).lerp(route.targetLookAt, eased);
+    this.galleryViewTarget.copy(this.routeCurveStart).lerp(this.routeCurveEnd, eased);
+
+    this.motionProgress = THREE.MathUtils.lerp(route.startProgress, route.targetProgress, eased);
+    this.presentationProgress = route.targetProgress;
+
+    if (routeProgress >= 1) {
+      this.jumpRoute = null;
+      this.getGalleryViewForProgress(route.targetProgress, this.galleryViewPosition, this.galleryViewTarget);
+      this.motionProgress = route.targetProgress;
+      this.presentationProgress = route.targetProgress;
+    }
+  }
+
+  updateFocusView() {
+    const index = this.focusedIndex ?? this.activeIndex;
+    const mesh = this.coverMeshes[index] ?? this.coverMeshes[0];
+    mesh.updateWorldMatrix(true, false);
+    mesh.getWorldPosition(this.focusViewTarget);
+    mesh.getWorldQuaternion(this.tmpQuaternion);
+
+    this.tmpNormal.set(0, 0, 1).applyQuaternion(this.tmpQuaternion).normalize();
+    const focusFov = this.getFocusFov();
+    const distance = this.getFocusDistance(focusFov);
+    this.focusViewPosition.copy(this.focusViewTarget).addScaledVector(this.tmpNormal, distance);
+    this.focusViewPosition.y += this.camera.aspect < 0.72 ? 0.05 : 0.1;
+    return focusFov;
+  }
+
+  getFocusFov() {
+    return this.camera.aspect < 0.72 ? 64 : 50;
+  }
+
+  getFocusDistance(fov) {
+    const frameWidth = CARD_WIDTH + CARD_FRAME * 2 + 0.24;
+    const frameHeight = CARD_HEIGHT + CARD_FRAME * 2 + 0.2;
+    const margin = this.camera.aspect < 0.72 ? 1.08 : 1.06;
+    const halfFovTangent = Math.tan(THREE.MathUtils.degToRad(fov) * 0.5);
+    const fitHeight = (frameHeight * margin) / (2 * halfFovTangent);
+    const fitWidth = (frameWidth * margin) / (2 * halfFovTangent * this.camera.aspect);
+    return Math.max(fitHeight, fitWidth, 2.75);
+  }
+
+  syncCamera(elapsed, delta) {
     this.galleryGroup.rotation.y = Math.sin(elapsed * 0.12) * 0.018;
     if (this.particles) {
       this.particles.rotation.y = elapsed * 0.025;
       this.particles.position.y = Math.sin(elapsed * 0.55) * 0.045;
     }
+
+    this.updateGalleryView(delta);
+    const targetBlend = this.focusedIndex === null ? 0 : 1;
+    const blendDamping = 1 - Math.exp(-delta * (targetBlend ? 4.8 : 5.6));
+    this.focusBlend += (targetBlend - this.focusBlend) * blendDamping;
+    if (Math.abs(this.focusBlend - targetBlend) < 0.001) {
+      this.focusBlend = targetBlend;
+    }
+
+    const easedFocus = THREE.MathUtils.smootherstep(this.focusBlend, 0, 1);
+    this.updateFocusedCardTilt(easedFocus, delta);
+    const focusFov = this.updateFocusView();
+    this.updateCardPresentation(easedFocus, delta);
+    this.desiredCameraPosition.copy(this.galleryViewPosition).lerp(this.focusViewPosition, easedFocus);
+    this.desiredCameraTarget.copy(this.galleryViewTarget).lerp(this.focusViewTarget, easedFocus);
+
+    const cameraDamping = 1 - Math.exp(-delta * 7.2);
+    this.camera.position.lerp(this.desiredCameraPosition, cameraDamping);
+    this.cameraTarget.lerp(this.desiredCameraTarget, cameraDamping);
+
+    const desiredFov = THREE.MathUtils.lerp(46, focusFov, easedFocus);
+    if (Math.abs(this.camera.fov - desiredFov) > 0.01) {
+      this.camera.fov += (desiredFov - this.camera.fov) * cameraDamping;
+      this.camera.updateProjectionMatrix();
+    }
+    this.camera.lookAt(this.cameraTarget);
+  }
+
+  updateCardPresentation(easedFocus, delta) {
+    const focusIndex = this.focusedIndex ?? this.activeIndex;
+    const segment = this.presentationProgress * (works.length - 1);
+    const damping = 1 - Math.exp(-delta * 8.5);
+
+    this.cardGroups.forEach((group, index) => {
+      const distanceFromScrollFocus = Math.abs(index - segment);
+      const galleryVisibility = 1 - THREE.MathUtils.smootherstep(distanceFromScrollFocus, 0.45, 1.05);
+      const galleryOpacity = 0.02 + galleryVisibility * 0.98;
+      const focusOpacity = index === focusIndex ? 1 : THREE.MathUtils.lerp(1, 0.02, easedFocus);
+      const targetOpacity = THREE.MathUtils.lerp(galleryOpacity, focusOpacity, easedFocus);
+      group.userData.materials?.forEach(({ material, baseOpacity }) => {
+        material.opacity += (baseOpacity * targetOpacity - material.opacity) * damping;
+      });
+    });
+  }
+
+  updateFocusedCardTilt(easedFocus, delta) {
+    const damping = 1 - Math.exp(-delta * 8);
+    const maxTiltX = 0.055;
+    const maxTiltY = 0.075;
+
+    this.cardGroups.forEach((group, index) => {
+      const visual = group.userData.visual;
+      if (!visual) {
+        return;
+      }
+
+      const tiltStrength = index === this.focusedIndex ? easedFocus : 0;
+      const targetX = -this.pointer.y * maxTiltX * tiltStrength;
+      const targetY = this.pointer.x * maxTiltY * tiltStrength;
+      const targetZ = this.pointer.x * 0.012 * tiltStrength;
+      const targetOffsetX = this.pointer.x * 0.035 * tiltStrength;
+      const targetOffsetY = this.pointer.y * 0.026 * tiltStrength;
+
+      visual.rotation.x += (targetX - visual.rotation.x) * damping;
+      visual.rotation.y += (targetY - visual.rotation.y) * damping;
+      visual.rotation.z += (targetZ - visual.rotation.z) * damping;
+      visual.position.x += (targetOffsetX - visual.position.x) * damping;
+      visual.position.y += (targetOffsetY - visual.position.y) * damping;
+    });
   }
 
   resize() {
@@ -767,63 +911,6 @@ function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
     line = testLine;
   });
   ctx.fillText(line, x, y);
-}
-
-function createAlbumImage(work, frame) {
-  const canvas = document.createElement('canvas');
-  canvas.width = 1600;
-  canvas.height = 1000;
-  const ctx = canvas.getContext('2d');
-  const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-  gradient.addColorStop(0, work.palette[(frame + 0) % work.palette.length]);
-  gradient.addColorStop(0.55, work.palette[3]);
-  gradient.addColorStop(1, work.palette[(frame + 1) % work.palette.length]);
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.globalCompositeOperation = 'screen';
-  for (let i = 0; i < 42; i += 1) {
-    const size = 80 + i * 18;
-    ctx.globalAlpha = 0.035 + (i % 6) * 0.011;
-    ctx.strokeStyle = i % 2 ? work.palette[1] : work.palette[2];
-    ctx.lineWidth = 5 + (i % 5) * 3;
-    ctx.beginPath();
-    ctx.ellipse(
-      canvas.width * (0.28 + frame * 0.18),
-      canvas.height * 0.52,
-      size * 1.6,
-      size * 0.55,
-      (i + frame) * 0.16,
-      0,
-      Math.PI * 2,
-    );
-    ctx.stroke();
-  }
-
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.globalAlpha = 0.9;
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.26)';
-  ctx.fillRect(70, 70, canvas.width - 140, canvas.height - 140);
-
-  ctx.globalAlpha = 1;
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '800 132px "PingFang SC", "Microsoft YaHei", sans-serif';
-  ctx.fillText(work.title, 124, 270);
-
-  ctx.font = '500 34px "PingFang SC", "Microsoft YaHei", sans-serif';
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.72)';
-  ctx.fillText(`${work.meta}  /  Frame ${String(frame + 1).padStart(2, '0')}`, 132, 342);
-
-  ctx.font = '900 260px Inter, Arial, sans-serif';
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.075)';
-  ctx.fillText(`${work.index}.${frame + 1}`, 112, 845);
-
-  ctx.fillStyle = work.palette[1];
-  ctx.fillRect(132, 760, 410, 12);
-  ctx.fillStyle = work.palette[2];
-  ctx.fillRect(132, 800, 260, 12);
-
-  return canvas.toDataURL('image/jpeg', 0.88);
 }
 
 const app = new GalleryExperience();
