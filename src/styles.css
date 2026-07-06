@@ -10,6 +10,7 @@
   -webkit-font-smoothing: antialiased;
 }
 
+/* 基础重置：保证不同浏览器下盒模型和按钮字体表现一致。 */
 * {
   box-sizing: border-box;
 }
@@ -37,6 +38,7 @@ button {
 }
 
 #galleryCanvas {
+  /* canvas 固定铺满视口，所有 DOM 面板都浮在它上方。 */
   position: fixed;
   inset: 0;
   width: 100vw;
@@ -46,6 +48,7 @@ button {
 }
 
 .topbar {
+  /* 顶栏只让内部按钮可点击，外层不挡住 3D 画布点击。 */
   position: fixed;
   z-index: 20;
   top: 0;
@@ -158,6 +161,7 @@ button {
 
 .intro-panel,
 .work-panel {
+  /* 两块信息面板共用玻璃质感，具体位置在各自规则中设置。 */
   position: fixed;
   pointer-events: auto;
   border: 1px solid rgba(255, 255, 255, 0.13);
@@ -275,6 +279,7 @@ button {
 }
 
 .progress-rail {
+  /* 桌面端右侧作品索引，点击后会触发镜头跳转。 */
   position: fixed;
   z-index: 15;
   top: 50%;
@@ -345,6 +350,7 @@ button {
 .is-focused .work-panel,
 .is-focused .progress-rail,
 .is-focused .topbar {
+  /* 聚焦卡片时隐藏界面层级，只保留 3D 近景。 */
   opacity: 0;
   pointer-events: none;
 }
@@ -372,6 +378,7 @@ button {
 }
 
 .scroll-spacer {
+  /* 页面本身没有长内容，使用占位高度提供滚动距离给 ScrollTrigger。 */
   height: 520vh;
 }
 

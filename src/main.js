@@ -15,10 +15,17 @@ import {
 
 gsap.registerPlugin(ScrollTrigger);
 
+// 画册卡片的统一尺寸。所有镜头距离、边框和点击检测都基于这组尺寸计算。
 const CARD_WIDTH = 1.9;
 const CARD_HEIGHT = 2.72;
 const CARD_FRAME = 0.08;
+const DEFAULT_CAMERA_FOV = 46;
+const MAX_FRAME_DELTA = 0.05;
 
+/**
+ * 页面展示的数据源。
+ * 后续如果要替换成真实作品，只需要改这里的标题、描述、标签和配色。
+ */
 const works = [
   {
     id: 'afterglow',
@@ -88,6 +95,10 @@ const works = [
   },
 ];
 
+const WORK_COUNT = works.length;
+const LAST_WORK_INDEX = WORK_COUNT - 1;
+
+// 统一收集 DOM 节点，避免在动画循环里反复 querySelector。
 const els = {
   canvas: document.querySelector('#galleryCanvas'),
   introPanel: document.querySelector('.intro-panel'),
@@ -106,12 +117,15 @@ const els = {
 
 class GalleryExperience {
   constructor() {
+    // Three.js 输入与交互状态。
     this.timer = new THREE.Timer();
     this.timer.connect(document);
     this.pointer = new THREE.Vector2(10, 10);
     this.clickPointer = new THREE.Vector2();
     this.raycaster = new THREE.Raycaster();
     this.coverMeshes = [];
+
+    // 页面状态：activeIndex 代表当前滚动段，focusedIndex 代表正在镜头聚焦的作品。
     this.activeIndex = 0;
     this.focusedIndex = null;
     this.focusBlend = 0;
@@ -119,6 +133,8 @@ class GalleryExperience {
     this.scrollProgress = 0;
     this.soundEnabled = false;
     this.audio = null;
+
+    // 镜头相关的 Vector3 会在每一帧复用，减少动画循环中的临时对象创建。
     this.cameraTarget = new THREE.Vector3(0, 1.7, 0);
     this.galleryViewPosition = new THREE.Vector3();
     this.galleryViewTarget = new THREE.Vector3();
@@ -138,6 +154,7 @@ class GalleryExperience {
   }
 
   init() {
+    // lucide 的图标通过 data-lucide 属性声明，初始化时统一替换为 SVG。
     createIcons({
       icons: {
         Play,
@@ -161,7 +178,13 @@ class GalleryExperience {
     this.scene.background = new THREE.Color('#050506');
     this.scene.fog = new THREE.Fog('#050506', 5, 22);
 
-    this.camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 80);
+    // 透视相机负责制造空间纵深。FOV 会在聚焦卡片时动态变窄或变宽。
+    this.camera = new THREE.PerspectiveCamera(
+      DEFAULT_CAMERA_FOV,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      80,
+    );
     this.camera.position.set(-0.45, 2.05, 6.15);
 
     this.renderer = new THREE.WebGLRenderer({
@@ -175,6 +198,7 @@ class GalleryExperience {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.15;
 
+    // EffectComposer 把正常渲染、Bloom 辉光、输出通道串起来。
     this.composer = new EffectComposer(this.renderer);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
     this.bloomPass = new UnrealBloomPass(
@@ -209,6 +233,7 @@ class GalleryExperience {
     this.addArchitecture();
     this.addParticles();
 
+    // 每个作品是一组 3D 对象：外层 card 决定空间位置，内层 visual 用来做鼠标跟随倾斜。
     works.forEach((work, index) => {
       const lane = index % 2 === 0 ? -1 : 1;
       const row = Math.floor(index / 2);
@@ -236,6 +261,7 @@ class GalleryExperience {
       });
       const cover = new THREE.Mesh(new THREE.PlaneGeometry(CARD_WIDTH, CARD_HEIGHT), coverMaterial);
       cover.position.z = 0.04;
+      // userData 用来把点击检测得到的 mesh 反查到作品数据和所在 card。
       cover.userData = { work, index, card, visual, baseScale: 1 };
       visual.add(cover);
       this.coverMeshes.push(cover);
@@ -281,6 +307,7 @@ class GalleryExperience {
   }
 
   addArchitecture() {
+    // 地面、墙体和顶灯只负责建立空间参照，不参与交互。
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(14, 26, 1, 1),
       new THREE.MeshStandardMaterial({
@@ -348,6 +375,7 @@ class GalleryExperience {
     const colorB = new THREE.Color('#f59e0b');
     const colorC = new THREE.Color('#38bdf8');
 
+    // 用 BufferGeometry 一次性提交所有粒子的位置和颜色，性能比创建 900 个 Mesh 更好。
     for (let i = 0; i < count; i += 1) {
       positions[i * 3] = (Math.random() - 0.5) * 10;
       positions[i * 3 + 1] = Math.random() * 4 + 0.2;
@@ -377,6 +405,7 @@ class GalleryExperience {
   }
 
   createCoverTexture(work) {
+    // 封面不依赖外部图片，直接用 Canvas 画出渐变、线条、标题，再作为 Three.js 纹理使用。
     const canvas = document.createElement('canvas');
     canvas.width = 1024;
     canvas.height = 1400;
@@ -440,13 +469,14 @@ class GalleryExperience {
       button.className = 'rail-item';
       button.innerHTML = `<span>${work.index}</span><strong>${work.title}</strong>`;
       button.addEventListener('click', () => {
-        this.routeToProgress(index / Math.max(works.length - 1, 1));
+        this.routeToProgress(index / Math.max(LAST_WORK_INDEX, 1));
       });
       els.railItems.appendChild(button);
     });
   }
 
   bindEvents() {
+    // 鼠标位置会同时驱动悬停检测、镜头轻微视差和聚焦卡片的微交互。
     window.addEventListener('resize', () => this.resize());
     window.addEventListener('pointermove', (event) => this.onPointerMove(event));
     window.addEventListener('pointerleave', () => this.clearHover());
@@ -458,6 +488,7 @@ class GalleryExperience {
       }
 
       if (this.focusedIndex !== null) {
+        // 聚焦状态下点击空白区域返回普通浏览状态。
         this.clearFocus();
         return;
       }
@@ -493,6 +524,7 @@ class GalleryExperience {
   }
 
   setupScroll() {
+    // ScrollTrigger 把页面滚动进度转换为 0 到 1 的 galleryProgress。
     ScrollTrigger.create({
       start: 0,
       end: () => document.documentElement.scrollHeight - window.innerHeight,
@@ -500,7 +532,7 @@ class GalleryExperience {
       onUpdate: (self) => {
         this.scrollProgress = self.progress;
         this.galleryProgress = THREE.MathUtils.clamp(self.progress, 0, 1);
-        const scrollIndex = Math.round(this.galleryProgress * (works.length - 1));
+        const scrollIndex = Math.round(this.galleryProgress * LAST_WORK_INDEX);
         const index = this.focusedIndex ?? scrollIndex;
         this.updateWorkPanel(index, this.galleryProgress);
       },
@@ -509,8 +541,8 @@ class GalleryExperience {
 
   routeToProgress(progress) {
     const targetProgress = THREE.MathUtils.clamp(progress, 0, 1);
-    const targetIndex = Math.round(targetProgress * (works.length - 1));
-    const sourceIndex = this.focusedIndex ?? Math.round(this.motionProgress * (works.length - 1));
+    const targetIndex = Math.round(targetProgress * LAST_WORK_INDEX);
+    const sourceIndex = this.focusedIndex ?? Math.round(this.motionProgress * LAST_WORK_INDEX);
     const distance = Math.abs(targetIndex - sourceIndex);
 
     this.clearFocus();
@@ -538,6 +570,7 @@ class GalleryExperience {
     const targetLookAt = new THREE.Vector3();
     this.getGalleryViewForProgress(targetProgress, targetPosition, targetLookAt, 0);
 
+    // 相邻卡片用滚动惯性即可；跨越较多作品时使用贝塞尔式中间点，避免镜头沿长廊硬拖过去。
     const routeType = distance >= 3 ? 'skip' : 'bridge';
     const midpoint = routeType === 'skip' ? 0.48 : 0.5;
     const midPosition = this.camera.position.clone().lerp(targetPosition, midpoint);
@@ -578,6 +611,7 @@ class GalleryExperience {
   }
 
   getCoverHit(clientX, clientY) {
+    // Raycaster 会从屏幕点击位置发出一条射线，命中哪个 cover mesh 就打开哪个作品。
     this.clickPointer.set((clientX / window.innerWidth) * 2 - 1, -(clientY / window.innerHeight) * 2 + 1);
     this.raycaster.setFromCamera(this.clickPointer, this.camera);
     const [hit] = this.raycaster.intersectObjects(this.coverMeshes, false);
@@ -585,6 +619,7 @@ class GalleryExperience {
   }
 
   updateHover() {
+    // 聚焦动画期间不做悬停放大，避免两个动画同时抢同一个卡片缩放。
     if (this.focusedIndex !== null || this.focusBlend > 0.08) {
       this.clearHover();
       return;
@@ -630,10 +665,11 @@ class GalleryExperience {
       return;
     }
 
+    // 右侧信息面板和右侧轨道共用 activeIndex，保证文字、进度和 3D 镜头状态一致。
     const shouldAnimatePanel = els.workTitle.textContent !== 'Loading';
     this.activeIndex = index;
     const work = works[index];
-    els.workIndex.textContent = `${work.index} / ${String(works.length).padStart(2, '0')}`;
+    els.workIndex.textContent = `${work.index} / ${String(WORK_COUNT).padStart(2, '0')}`;
     els.workTitle.textContent = work.title;
     els.workMeta.textContent = work.meta;
     els.workDescription.textContent = work.description;
@@ -660,10 +696,10 @@ class GalleryExperience {
 
   focusWork(index) {
     this.cancelJumpRoute();
-    this.focusedIndex = THREE.MathUtils.clamp(index, 0, works.length - 1);
+    this.focusedIndex = THREE.MathUtils.clamp(index, 0, LAST_WORK_INDEX);
     this.clearHover();
     this.updateWorkPanel(this.focusedIndex, this.galleryProgress);
-    this.scrollToProgress(this.focusedIndex / Math.max(works.length - 1, 1));
+    this.scrollToProgress(this.focusedIndex / Math.max(LAST_WORK_INDEX, 1));
     document.body.classList.add('is-focused');
     els.openActiveWork.querySelector('span').textContent = '返回浏览';
     this.playPulse(140, 0.08);
@@ -693,6 +729,7 @@ class GalleryExperience {
   }
 
   playPulse(frequency, volume) {
+    // 交互音效非常短，只作为点击/悬停反馈；未开启声音时不会创建音频节点。
     if (!this.soundEnabled || !this.audio) {
       return;
     }
@@ -713,9 +750,9 @@ class GalleryExperience {
 
   getGalleryViewForProgress(progress, outPosition, outTarget, pointerInfluence = 1) {
     const clampedProgress = THREE.MathUtils.clamp(progress, 0, 1);
-    const segment = clampedProgress * (works.length - 1);
+    const segment = clampedProgress * LAST_WORK_INDEX;
     const lowerIndex = Math.floor(segment);
-    const upperIndex = Math.min(lowerIndex + 1, works.length - 1);
+    const upperIndex = Math.min(lowerIndex + 1, LAST_WORK_INDEX);
     const localProgress = THREE.MathUtils.smootherstep(segment - lowerIndex, 0, 1);
     const lowerWork = this.coverMeshes[lowerIndex] ?? this.coverMeshes[0];
     const upperWork = this.coverMeshes[upperIndex] ?? lowerWork;
@@ -730,6 +767,7 @@ class GalleryExperience {
     const z = focusZ + 5.65;
     const pointerLift = this.pointer.y * 0.12 * pointerInfluence;
 
+    // 镜头位置和看向点分开计算：位置决定站在哪里，看向点决定看哪里。
     outPosition.set(x + this.pointer.x * 0.14 * pointerInfluence, y + pointerLift, z);
     outTarget.set(focusX * 0.1, 1.68, focusZ - 0.35);
   }
@@ -740,6 +778,7 @@ class GalleryExperience {
       return;
     }
 
+    // 没有跳转路线时，普通镜头完全跟随页面滚动进度。
     this.getGalleryViewForProgress(this.galleryProgress, this.galleryViewPosition, this.galleryViewTarget);
     this.motionProgress = this.galleryProgress;
     this.presentationProgress = this.galleryProgress;
@@ -751,6 +790,7 @@ class GalleryExperience {
     const routeProgress = THREE.MathUtils.clamp(route.elapsed / route.duration, 0, 1);
     const eased = THREE.MathUtils.smootherstep(routeProgress, 0, 1);
 
+    // 两段 lerp 组合成二次贝塞尔效果：start -> mid -> target。
     this.routeCurveStart.copy(route.startPosition).lerp(route.midPosition, eased);
     this.routeCurveEnd.copy(route.midPosition).lerp(route.targetPosition, eased);
     this.galleryViewPosition.copy(this.routeCurveStart).lerp(this.routeCurveEnd, eased);
@@ -777,6 +817,7 @@ class GalleryExperience {
     mesh.getWorldPosition(this.focusViewTarget);
     mesh.getWorldQuaternion(this.tmpQuaternion);
 
+    // 卡片法线代表它“正面朝向”的方向，镜头沿法线前进即可站到卡片正前方。
     this.tmpNormal.set(0, 0, 1).applyQuaternion(this.tmpQuaternion).normalize();
     const focusFov = this.getFocusFov();
     const distance = this.getFocusDistance(focusFov);
@@ -790,6 +831,7 @@ class GalleryExperience {
   }
 
   getFocusDistance(fov) {
+    // 根据 FOV 和屏幕宽高比反推安全距离，保证聚焦后的卡片完整进入画面。
     const frameWidth = CARD_WIDTH + CARD_FRAME * 2 + 0.24;
     const frameHeight = CARD_HEIGHT + CARD_FRAME * 2 + 0.2;
     const margin = this.camera.aspect < 0.72 ? 1.08 : 1.06;
@@ -800,6 +842,7 @@ class GalleryExperience {
   }
 
   syncCamera(elapsed, delta) {
+    // 轻微摆动让场景保持“活着”的感觉，但幅度很小，避免影响阅读。
     this.galleryGroup.rotation.y = Math.sin(elapsed * 0.12) * 0.018;
     if (this.particles) {
       this.particles.rotation.y = elapsed * 0.025;
@@ -818,14 +861,17 @@ class GalleryExperience {
     this.updateFocusedCardTilt(easedFocus, delta);
     const focusFov = this.updateFocusView();
     this.updateCardPresentation(easedFocus, delta);
+
+    // galleryView 是普通浏览镜头，focusView 是卡片正前方镜头，focusBlend 决定两者混合比例。
     this.desiredCameraPosition.copy(this.galleryViewPosition).lerp(this.focusViewPosition, easedFocus);
     this.desiredCameraTarget.copy(this.galleryViewTarget).lerp(this.focusViewTarget, easedFocus);
 
+    // 指数阻尼让不同帧率下的镜头速度更稳定，避免直接 setPosition 造成卡顿感。
     const cameraDamping = 1 - Math.exp(-delta * 7.2);
     this.camera.position.lerp(this.desiredCameraPosition, cameraDamping);
     this.cameraTarget.lerp(this.desiredCameraTarget, cameraDamping);
 
-    const desiredFov = THREE.MathUtils.lerp(46, focusFov, easedFocus);
+    const desiredFov = THREE.MathUtils.lerp(DEFAULT_CAMERA_FOV, focusFov, easedFocus);
     if (Math.abs(this.camera.fov - desiredFov) > 0.01) {
       this.camera.fov += (desiredFov - this.camera.fov) * cameraDamping;
       this.camera.updateProjectionMatrix();
@@ -835,7 +881,7 @@ class GalleryExperience {
 
   updateCardPresentation(easedFocus, delta) {
     const focusIndex = this.focusedIndex ?? this.activeIndex;
-    const segment = this.presentationProgress * (works.length - 1);
+    const segment = this.presentationProgress * LAST_WORK_INDEX;
     const damping = 1 - Math.exp(-delta * 8.5);
 
     this.cardGroups.forEach((group, index) => {
@@ -862,6 +908,7 @@ class GalleryExperience {
       }
 
       const tiltStrength = index === this.focusedIndex ? easedFocus : 0;
+      // 聚焦卡片根据鼠标方向做少量旋转和平移，形成“跟手”的近景反馈。
       const targetX = -this.pointer.y * maxTiltX * tiltStrength;
       const targetY = this.pointer.x * maxTiltY * tiltStrength;
       const targetZ = this.pointer.x * 0.012 * tiltStrength;
@@ -889,7 +936,7 @@ class GalleryExperience {
   render() {
     this.timer.update();
     const elapsed = this.timer.getElapsed();
-    const delta = Math.min(this.timer.getDelta(), 0.05);
+    const delta = Math.min(this.timer.getDelta(), MAX_FRAME_DELTA);
     this.syncCamera(elapsed, delta);
     this.updateHover();
     this.composer.render();

@@ -13,6 +13,16 @@
 - 响应式桌面与移动端布局
 - 声音开关与轻量交互反馈
 
+## 项目解析
+
+答辩和二次开发说明见 [docs/PROJECT_GUIDE.md](docs/PROJECT_GUIDE.md)，其中包含：
+
+- 文件结构和运行方式
+- Three.js 场景、卡片、镜头、交互的基础逻辑
+- 滚动镜头、点击聚焦、大跨度跳转的实现说明
+- 自动化测试验证内容
+- 答辩讲解提纲和常见追问
+
 ## 在线地址
 
 GitHub Pages 部署后访问：
@@ -35,6 +45,16 @@ export PATH=/Users/ruo/.cache/codex-runtimes/codex-primary-runtime/dependencies/
 /Users/ruo/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/pnpm install
 /Users/ruo/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/pnpm dev
 ```
+
+## 验证
+
+启动开发服务后，可运行 UI 自动化验证：
+
+```bash
+pnpm verify:ui
+```
+
+该脚本会检查桌面端和移动端截图、卡片是否被裁切、镜头跳转是否平滑、聚焦卡片是否完整显示。
 
 ## 部署
 

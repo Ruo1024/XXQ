@@ -7,14 +7,18 @@ import { chromium } from 'playwright';
 const targetUrl = process.env.TARGET_URL || 'http://127.0.0.1:5173/';
 const currentDir = dirname(fileURLToPath(import.meta.url));
 const outputDir = resolve(currentDir, '../output/playwright');
+const EXPECTED_COVER_COUNT = 6;
+const DESKTOP_VIEWPORT = { name: 'desktop', width: 1440, height: 900, clickCover: true };
+const MOBILE_VIEWPORT = { name: 'mobile', width: 390, height: 844, focusButton: true };
 
 await mkdir(outputDir, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
 
 try {
-  await verifyViewport({ name: 'desktop', width: 1440, height: 900, clickCover: true });
-  await verifyViewport({ name: 'mobile', width: 390, height: 844, focusButton: true });
+  // 桌面端重点验证滚动、轨道跳转、点击聚焦；移动端重点验证响应式和按钮聚焦。
+  await verifyViewport(DESKTOP_VIEWPORT);
+  await verifyViewport(MOBILE_VIEWPORT);
 } finally {
   await browser.close();
 }
@@ -26,9 +30,13 @@ async function verifyViewport({ name, width, height, clickCover, focusButton }) 
   });
 
   await page.goto(targetUrl, { waitUntil: 'networkidle' });
-  await page.waitForFunction(() => window.galleryExperience?.coverMeshes?.length === 6);
+  await page.waitForFunction(
+    (coverCount) => window.galleryExperience?.coverMeshes?.length === coverCount,
+    EXPECTED_COVER_COUNT,
+  );
   await page.waitForTimeout(900);
 
+  // 先做一次像素检查，避免页面渲染成全黑但测试仍然继续。
   const screenshot = await page.screenshot({
     path: join(outputDir, `${name}.png`),
     fullPage: false,
@@ -96,7 +104,7 @@ async function verifyViewport({ name, width, height, clickCover, focusButton }) 
 }
 
 async function assertCoverFraming(page) {
-  for (let index = 0; index < 6; index += 1) {
+  for (let index = 0; index < EXPECTED_COVER_COUNT; index += 1) {
     await page.evaluate((progress) => {
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
       window.scrollTo(0, maxScroll * progress);
@@ -168,39 +176,40 @@ async function getFocusedVisualRotation(page) {
 
 async function getCoverBounds(page, workIndex) {
   return page.evaluate((index) => {
-      const app = window.galleryExperience;
-      const mesh = app.coverMeshes[index];
-      const Vector3 = app.camera.position.constructor;
-      mesh.updateWorldMatrix(true, false);
-      app.camera.updateMatrixWorld();
+    const app = window.galleryExperience;
+    const mesh = app.coverMeshes[index];
+    const Vector3 = app.camera.position.constructor;
+    mesh.updateWorldMatrix(true, false);
+    app.camera.updateMatrixWorld();
 
-      const positions = mesh.geometry.attributes.position;
-      const points = [];
-      for (let vertex = 0; vertex < positions.count; vertex += 1) {
-        const point = new Vector3(
-          positions.getX(vertex),
-          positions.getY(vertex),
-          positions.getZ(vertex),
-        );
-        mesh.localToWorld(point);
-        point.project(app.camera);
-        points.push({
-          x: (point.x * 0.5 + 0.5) * window.innerWidth,
-          y: (-point.y * 0.5 + 0.5) * window.innerHeight,
-          z: point.z,
-        });
-      }
+    // 把封面四个顶点投影到屏幕坐标，用来判断是否被视口裁掉。
+    const positions = mesh.geometry.attributes.position;
+    const points = [];
+    for (let vertex = 0; vertex < positions.count; vertex += 1) {
+      const point = new Vector3(
+        positions.getX(vertex),
+        positions.getY(vertex),
+        positions.getZ(vertex),
+      );
+      mesh.localToWorld(point);
+      point.project(app.camera);
+      points.push({
+        x: (point.x * 0.5 + 0.5) * window.innerWidth,
+        y: (-point.y * 0.5 + 0.5) * window.innerHeight,
+        z: point.z,
+      });
+    }
 
-      return {
-        minX: Math.min(...points.map((point) => point.x)),
-        maxX: Math.max(...points.map((point) => point.x)),
-        minY: Math.min(...points.map((point) => point.y)),
-        maxY: Math.max(...points.map((point) => point.y)),
-        minZ: Math.min(...points.map((point) => point.z)),
-        maxZ: Math.max(...points.map((point) => point.z)),
-        width: window.innerWidth,
-        height: window.innerHeight,
-      };
+    return {
+      minX: Math.min(...points.map((point) => point.x)),
+      maxX: Math.max(...points.map((point) => point.x)),
+      minY: Math.min(...points.map((point) => point.y)),
+      maxY: Math.max(...points.map((point) => point.y)),
+      minZ: Math.min(...points.map((point) => point.z)),
+      maxZ: Math.max(...points.map((point) => point.z)),
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
   }, workIndex);
 }
 
@@ -270,6 +279,7 @@ function analyzeScreenshot(buffer) {
   let varied = 0;
   const stride = 16;
 
+  // 抽样统计亮度和颜色差异，成本低，足够发现空白页或 WebGL 未渲染的问题。
   for (let y = 0; y < png.height; y += stride) {
     for (let x = 0; x < png.width; x += stride) {
       const index = (png.width * y + x) * 4;
