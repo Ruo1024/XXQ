@@ -1,13 +1,16 @@
-# FLOWFRAME 3D Gallery
+# FLOWFRAME Anime Mix Gallery
 
-基于作品规划书实现的初步开发版本：一个 Web 可交互视效流媒体展示原型。
+一个 Web 端动漫混剪封面画廊原型：主页以 3D 海报廊组织封面，聚焦后可进入对应混剪展示页。
 
 ## 已实现
 
-- Three.js 全屏 3D 立体画廊
-- GSAP ScrollTrigger 滚动镜头叙事
-- Raycaster 封面悬停、发光、点击镜头聚焦
-- 粒子、雾效、Bloom 后期视觉
+- Three.js 全屏 3D 动漫封面画廊
+- GSAP ScrollTrigger 滚动镜头叙事和短路径跳转
+- Raycaster 封面悬停、发光、第一次点击聚焦
+- 聚焦后第二次点击封面中心进入 `#/works/:id` 混剪展示页
+- 详情页包含 Opening、Synopsis、Frame Notes、Mix Direction、Next Mix
+- 视频素材未填入时使用生成式封面和氛围背景占位
+- 预留 `coverImage`、`posterSrc`、`videoSrc`、`frameNotes` 数据字段
 - 大跨度作品跳转短路径镜头
 - 聚焦卡片鼠标方向跟随微交互
 - 响应式桌面与移动端布局
@@ -45,6 +48,16 @@ pnpm verify:ui
 ```
 
 该脚本会检查桌面端和移动端截图、卡片是否被裁切、镜头跳转是否平滑、聚焦卡片是否完整显示。
+同时会验证第一次点击聚焦、第二次点击进入详情页、详情页切换下一件、`Escape` 返回画廊等流程。
+
+## 素材替换
+
+后续可把素材放入 `public/media/works/<id>/`，再在 `src/main.js` 的 `works` 数据中填写：
+
+- `coverImage`：主页封面或人物插画
+- `posterSrc`：详情页视频封面
+- `videoSrc`：混剪视频文件
+- `frameNotes`：关键帧时间码和注释
 
 ## 部署
 

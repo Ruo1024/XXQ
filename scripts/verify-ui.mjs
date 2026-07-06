@@ -51,16 +51,7 @@ async function verifyViewport({ name, width, height, clickCover, focusButton }) 
     await assertCoverFraming(page);
     await assertSkipRoute(page);
 
-    const point = await page.evaluate(() => {
-      const app = window.galleryExperience;
-      const mesh = app.coverMeshes[app.activeIndex];
-      const position = mesh.getWorldPosition(mesh.position.clone());
-      position.project(app.camera);
-      return {
-        x: (position.x * 0.5 + 0.5) * window.innerWidth,
-        y: (-position.y * 0.5 + 0.5) * window.innerHeight,
-      };
-    });
+    const point = await getActiveCoverCenter(page);
 
     await page.mouse.move(point.x, point.y);
     await page.waitForTimeout(200);
@@ -72,6 +63,21 @@ async function verifyViewport({ name, width, height, clickCover, focusButton }) 
     await assertFocusTiltResponds(page);
     await page.screenshot({
       path: join(outputDir, 'focus-open.png'),
+      fullPage: false,
+    });
+    const focusedPoint = await getActiveCoverCenter(page);
+    await page.mouse.click(focusedPoint.x, focusedPoint.y);
+    await page.waitForFunction(() => document.body.classList.contains('is-detail'));
+    await assertDetailOpen(page, 0);
+    await page.screenshot({
+      path: join(outputDir, 'detail-open.png'),
+      fullPage: false,
+    });
+    await page.locator('#detailNext').click();
+    await page.waitForFunction(() => window.location.hash.includes('/works/tide'));
+    await assertDetailOpen(page, 1);
+    await page.screenshot({
+      path: join(outputDir, 'detail-next.png'),
       fullPage: false,
     });
     await page.keyboard.press('Escape');
@@ -142,6 +148,39 @@ async function assertFocusedCoverFraming(page) {
   }
   const coverBounds = await getCoverBounds(page, bounds);
   assertVisibleBounds(coverBounds, `focused cover ${bounds + 1}`, 10);
+}
+
+async function assertDetailOpen(page, expectedIndex) {
+  const state = await page.evaluate(() => ({
+    isDetail: document.body.classList.contains('is-detail'),
+    title: document.querySelector('#detailTitle')?.textContent,
+    count: document.querySelector('#detailCount')?.textContent,
+    frameCount: document.querySelectorAll('.frame-note').length,
+    hash: window.location.hash,
+    hidden: document.querySelector('#detailPage')?.getAttribute('aria-hidden'),
+  }));
+
+  if (!state.isDetail || state.hidden !== 'false') {
+    throw new Error(`detail page did not open: ${JSON.stringify(state)}`);
+  }
+
+  const expectedCount = `${String(expectedIndex + 1).padStart(2, '0')} / 06`;
+  if (!state.count.includes(expectedCount) || state.frameCount < 3) {
+    throw new Error(`detail content mismatch: ${JSON.stringify(state)}`);
+  }
+}
+
+async function getActiveCoverCenter(page) {
+  return page.evaluate(() => {
+    const app = window.galleryExperience;
+    const mesh = app.coverMeshes[app.focusedIndex ?? app.activeIndex];
+    const position = mesh.getWorldPosition(mesh.position.clone());
+    position.project(app.camera);
+    return {
+      x: (position.x * 0.5 + 0.5) * window.innerWidth,
+      y: (-position.y * 0.5 + 0.5) * window.innerHeight,
+    };
+  });
 }
 
 async function assertFocusTiltResponds(page) {

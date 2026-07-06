@@ -3,19 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FLOWFRAME 3D Gallery</title>
+    <title>FLOWFRAME Anime Mix Gallery</title>
   </head>
   <body>
     <canvas id="galleryCanvas" aria-label="3D 立体画廊"></canvas>
 
     <header class="topbar">
-      <a class="brand" href="#top" aria-label="返回顶部">
+      <a class="brand" href="#/" aria-label="返回画廊">
         <span class="brand-mark"></span>
         <span>FLOWFRAME</span>
       </a>
       <nav class="topnav" aria-label="主导航">
-        <a href="#gallery">画廊</a>
-        <a href="#collection">影像</a>
+        <a href="#gallery">Gallery</a>
       </nav>
       <button class="icon-button" id="soundToggle" type="button" aria-label="声音开关" title="声音开关">
         <i data-lucide="volume-2"></i>
@@ -24,21 +23,21 @@
 
     <main id="top" class="experience-shell">
       <section class="intro-panel" id="gallery">
-        <p class="kicker">Web 可交互视效流媒体展示</p>
-        <h1>空间化影像展厅</h1>
+        <p class="kicker">Anime mix archive</p>
+        <h1>影像混剪封面廊</h1>
         <p>
-          以 3D 画廊组织作品封面，结合滚动镜头、悬停反馈和点击聚焦视角，形成沉浸浏览体验。
+          以动漫封面和人物视觉作为入口，先聚焦海报，再进入对应混剪的沉浸式放映界面。
         </p>
         <button class="primary-action" id="openActiveWork" type="button">
           <i data-lucide="play"></i>
-          <span>聚焦当前作品</span>
+          <span>聚焦当前封面</span>
         </button>
       </section>
 
       <aside class="work-panel" id="collection" aria-live="polite">
         <p class="work-index" id="workIndex">01 / 06</p>
         <h2 id="workTitle">Loading</h2>
-        <p id="workMeta">Interactive visual stream</p>
+        <p id="workMeta">AMV archive</p>
         <p id="workDescription"></p>
         <div class="work-tags" id="workTags"></div>
       </aside>
@@ -48,6 +47,59 @@
         <div class="rail-items" id="railItems"></div>
       </aside>
     </main>
+
+    <div class="focus-enter-hint" id="focusEnterHint" aria-hidden="true">
+      <span>ENTER MIX</span>
+    </div>
+
+    <section class="detail-page" id="detailPage" aria-live="polite" aria-hidden="true">
+      <div class="detail-backdrop" id="detailBackdrop"></div>
+      <header class="detail-hud detail-hud-top">
+        <a class="detail-back" id="detailBack" href="#/" aria-label="返回画廊">All Frames</a>
+        <button class="detail-sound" id="detailSound" type="button">Sound</button>
+      </header>
+
+      <main class="detail-stage">
+        <section class="detail-section detail-hero" data-detail-section="opening">
+          <p class="detail-kicker" id="detailKicker">FF-001 / AMV</p>
+          <h2 id="detailTitle">Loading</h2>
+          <p class="detail-logline" id="detailLogline"></p>
+          <button class="detail-play" id="detailPlay" type="button">
+            <span>PLAY</span>
+          </button>
+        </section>
+
+        <section class="detail-section detail-copy" data-detail-section="synopsis">
+          <p class="detail-section-index">01 / Synopsis</p>
+          <h3>情绪线索</h3>
+          <p id="detailSynopsis"></p>
+        </section>
+
+        <section class="detail-section detail-frames" data-detail-section="frames">
+          <p class="detail-section-index">02 / Frame Notes</p>
+          <h3>关键帧注释</h3>
+          <div class="frame-strip" id="detailFrameStrip"></div>
+        </section>
+
+        <section class="detail-section detail-copy detail-direction" data-detail-section="direction">
+          <p class="detail-section-index">03 / Mix Direction</p>
+          <h3>混剪方向</h3>
+          <p id="detailDirection"></p>
+          <dl class="detail-credits" id="detailCredits"></dl>
+        </section>
+
+        <section class="detail-section detail-next" data-detail-section="next">
+          <p class="detail-section-index">04 / Next Mix</p>
+          <button class="detail-next-card" id="detailNextCard" type="button"></button>
+        </section>
+      </main>
+
+      <footer class="detail-hud detail-hud-bottom">
+        <button class="detail-nav" id="detailPrev" type="button">Prev</button>
+        <span id="detailCount">01 / 06</span>
+        <button class="detail-nav" id="detailNext" type="button">Next</button>
+      </footer>
+    </section>
 
     <div class="hover-label" id="hoverLabel" aria-hidden="true"></div>
 

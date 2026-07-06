@@ -21,77 +21,204 @@ const CARD_HEIGHT = 2.72;
 const CARD_FRAME = 0.08;
 const DEFAULT_CAMERA_FOV = 46;
 const MAX_FRAME_DELTA = 0.05;
+const DETAIL_ROUTE_PREFIX = '#/works/';
 
 /**
  * 页面展示的数据源。
- * 后续如果要替换成真实作品，只需要改这里的标题、描述、标签和配色。
+ * coverImage、posterSrc、videoSrc 预留给后续动漫封面、人物插画和混剪视频素材。
  */
 const works = [
   {
     id: 'afterglow',
     index: '01',
     title: '余晖航线',
-    meta: 'Cinema Loop / 2026',
-    tags: ['Bloom', 'Scroll Camera', 'Raycaster'],
-    palette: ['#ff6f4d', '#ffd166', '#1f7a8c', '#101014'],
+    meta: 'AMV / Character Cut / 2026',
+    category: '热血剪辑',
+    duration: '03:42',
+    tags: ['AMV', 'Character Cut', 'Warm Light'],
+    palette: ['#f25f4c', '#f8d08a', '#2f6f73', '#0b0b0d'],
+    accentColor: '#f8d08a',
+    transitionMood: '光带拖影',
+    coverImage: '',
+    posterSrc: '',
+    videoSrc: '',
+    logline: '夕阳、追逐和高燃副歌被剪成一段持续推进的角色开场。',
     description:
-      '以暖色光带和低空粒子构成城市夜航视效，强调封面点击、悬停发光和镜头推进后的作品进入感。',
-    specs: ['片元混合转场', '封面发光反馈', '宽屏画册叙事'],
+      '暖色光带包裹人物轮廓，封面像一张未放映的番剧海报，等待进入完整混剪。',
+    synopsis:
+      '以角色奔跑、转身、对峙和爆发镜头串成一条由低到高的情绪线，让第一秒的静默和最后的高光形成对照。',
+    mixDirection:
+      '节奏上从慢推镜头进入，副歌处使用短促切点和暖色拖影，结尾保留半秒静止，给角色一个海报式落点。',
+    credits: [
+      ['Mood', 'Hot-blooded / sunset'],
+      ['Cut', 'Build-up to chorus'],
+      ['Color', 'Amber edge light'],
+    ],
+    frameNotes: [
+      ['00:08', '角色逆光', '用大片暗部让第一束余晖成为视线入口。'],
+      ['01:16', '奔跑切点', '步伐、鼓点和镜头横移在同一帧落下。'],
+      ['02:54', '高光定格', '最后一击不继续闪切，留给观众确认人物姿态。'],
+    ],
   },
   {
     id: 'tide',
     index: '02',
     title: '潮汐信号',
-    meta: 'Interactive Album / 2026',
-    tags: ['Texture', 'Fog', 'Motion'],
-    palette: ['#2dd4bf', '#0ea5e9', '#f8fafc', '#071013'],
+    meta: 'AMV / Emotional Loop / 2026',
+    category: '治愈剪辑',
+    duration: '02:58',
+    tags: ['AMV', 'Soft Cut', 'Blue Tone'],
+    palette: ['#58d7c7', '#7db8ff', '#f5f0e8', '#071013'],
+    accentColor: '#7db8ff',
+    transitionMood: '柔和溶解',
+    coverImage: '',
+    posterSrc: '',
+    videoSrc: '',
+    logline: '把日常、海风和眼神停顿剪成一段低频的蓝色回声。',
     description:
-      '通过冷色纹理、雾效和滚动镜头展示水面信号的层次，适合扩展为 WebGL 图片位移转场。',
-    specs: ['雾化空间', '流媒体封面', '响应式详情'],
+      '低饱和蓝绿色建立安静气质，人物插画区域预留给后续封面素材。',
+    synopsis:
+      '混剪重心不在剧情推进，而在相似动作与相似景别之间寻找呼吸，让观众感到时间被海潮轻轻拉长。',
+    mixDirection:
+      '镜头之间使用柔边溶解和轻微漂浮，音乐弱拍处保留角色眼神，避免过多速度感破坏治愈气质。',
+    credits: [
+      ['Mood', 'Quiet / ocean'],
+      ['Cut', 'Breathing interval'],
+      ['Color', 'Cyan and pale cream'],
+    ],
+    frameNotes: [
+      ['00:12', '水面反光', '先给环境，再进入人物，建立低声量开场。'],
+      ['01:03', '眼神停顿', '切点刻意慢半拍，让情绪落下。'],
+      ['02:21', '蓝色回声', '相似构图重复一次，像副歌后的回潮。'],
+    ],
   },
   {
     id: 'ember',
     index: '03',
     title: '暗火档案',
-    meta: 'Visual Stream / 2026',
-    tags: ['Particles', 'Depth', 'Sound'],
-    palette: ['#ef4444', '#f97316', '#f5f5f4', '#120d0b'],
+    meta: 'AMV / Dark Action / 2026',
+    category: '暗黑剪辑',
+    duration: '03:18',
+    tags: ['AMV', 'Dark Cut', 'Impact'],
+    palette: ['#c2413a', '#f36b36', '#eee7dc', '#120d0b'],
+    accentColor: '#f36b36',
+    transitionMood: '颗粒残影',
+    coverImage: '',
+    posterSrc: '',
+    videoSrc: '',
+    logline: '暗红颗粒和火星残影把对战镜头整理成一份角色档案。',
     description:
-      '以暗场、高反差和粒子轨迹组织强烈的影像封面，呈现类似电影片头的作品浏览节奏。',
-    specs: ['粒子层', '点击音效', '封面透视'],
+      '暗场和高反差保留角色神秘感，适合后续填入悬疑或战斗向人物封面。',
+    synopsis:
+      '镜头选择更偏近景、手部、武器和眼睛，让角色不靠对白也能建立危险感。',
+    mixDirection:
+      '每个重拍只给一个主动作，避免全程闪白；颗粒与红色边缘只在切换瞬间出现，稳定后画面保持清晰。',
+    credits: [
+      ['Mood', 'Dark / tense'],
+      ['Cut', 'Impact accents'],
+      ['Color', 'Deep red grain'],
+    ],
+    frameNotes: [
+      ['00:06', '黑场开眼', '开场用最少信息建立压迫感。'],
+      ['01:28', '火星残影', '动作之后才出现残影，强调受力而不是装饰。'],
+      ['02:45', '沉默收束', '结尾留出呼吸，降低连续冲击后的疲劳。'],
+    ],
   },
   {
     id: 'glass',
     index: '04',
     title: '玻璃季风',
-    meta: 'Gallery Motion / 2026',
-    tags: ['Reflection', 'GSAP', '3D Layout'],
-    palette: ['#a7f3d0', '#60a5fa', '#fef3c7', '#0a1018'],
+    meta: 'AMV / Sci-Fi Slice / 2026',
+    category: '科幻剪辑',
+    duration: '03:05',
+    tags: ['AMV', 'Refraction', 'Clean Cut'],
+    palette: ['#9edfc7', '#73a7ef', '#f2dfad', '#0a1018'],
+    accentColor: '#73a7ef',
+    transitionMood: '透明折射',
+    coverImage: '',
+    posterSrc: '',
+    videoSrc: '',
+    logline: '用玻璃折射、高光边缘和干净切点组织一段未来感人物混剪。',
     description:
-      '使用透明感色块和高光边缘模拟玻璃介质，配合镜头侧移展现立体画廊的空间连续性。',
-    specs: ['滚动叙事', '镜头侧移', '材质高光'],
+      '封面更像一张冷静的角色视觉板，人物、机械和城市光源都可以自然接入。',
+    synopsis:
+      '每组镜头都像隔着透明介质观看角色，冷暖高光在人物边缘交错，形成轻科幻的距离感。',
+    mixDirection:
+      '转场使用细长折射带，切换时短暂拉开画面层次；稳定段落只保留微弱高光，保证人物细节可读。',
+    credits: [
+      ['Mood', 'Clean / future'],
+      ['Cut', 'Side movement'],
+      ['Color', 'Blue glass highlight'],
+    ],
+    frameNotes: [
+      ['00:18', '玻璃边缘', '用高光作为人物轮廓的第二条线。'],
+      ['01:37', '侧移镜头', '让空间关系连续，避免机械地换镜头。'],
+      ['02:50', '冷暖交界', '最后一段用暖色破开冷调，形成情绪转折。'],
+    ],
   },
   {
     id: 'signal',
     index: '05',
     title: '频谱广场',
-    meta: 'Media Grid / 2026',
-    tags: ['Grid', 'Hover Scale', 'Post FX'],
-    palette: ['#facc15', '#22c55e', '#38bdf8', '#10130f'],
+    meta: 'AMV / Rhythm Grid / 2026',
+    category: '节奏剪辑',
+    duration: '02:36',
+    tags: ['AMV', 'Beat Sync', 'Scan Line'],
+    palette: ['#e6c84f', '#5fcf7b', '#62bde8', '#10130f'],
+    accentColor: '#e6c84f',
+    transitionMood: '扫描跳变',
+    coverImage: '',
+    posterSrc: '',
+    videoSrc: '',
+    logline: '把舞台、街区和节拍切成一组明亮但克制的频谱格。',
     description:
-      '将流媒体封面抽象为频谱式色块，以空间网格和亮度变化表现作品集合的节奏。',
-    specs: ['空间封面墙', '后期辉光', '模块化数据'],
+      '更适合音乐感强的群像混剪，封面以格线和色块暗示节拍结构。',
+    synopsis:
+      '人物不是单个主角，而是被节拍组织成群像；每个转场都像频谱柱在下一拍重新排列。',
+    mixDirection:
+      '扫描线只在节奏节点出现，其他时间保留画面干净；用短暂停顿突出副歌前的空拍。',
+    credits: [
+      ['Mood', 'Rhythmic / bright'],
+      ['Cut', 'Beat grid'],
+      ['Color', 'Yellow and cyan'],
+    ],
+    frameNotes: [
+      ['00:10', '空拍入场', '先空一拍，再让画面和音乐同时进入。'],
+      ['01:02', '群像格线', '用规则布局稳定多角色信息。'],
+      ['02:12', '频谱收束', '所有色块回到中心，形成完整段落。'],
+    ],
   },
   {
     id: 'orbit',
     index: '06',
     title: '轨道切片',
-    meta: 'WebGL Study / 2026',
-    tags: ['Morphing', 'Album', 'Responsive'],
-    palette: ['#c084fc', '#fb7185', '#f9fafb', '#10071a'],
+    meta: 'AMV / Romance Orbit / 2026',
+    category: '青春剪辑',
+    duration: '03:24',
+    tags: ['AMV', 'Soft Orbit', 'Memory'],
+    palette: ['#a98de8', '#f08aa0', '#f5efe8', '#10071a'],
+    accentColor: '#f08aa0',
+    transitionMood: '弧形遮罩',
+    coverImage: '',
+    posterSrc: '',
+    videoSrc: '',
+    logline: '用环形遮罩和浅色光晕把回忆、告白和擦肩剪成一条轨道。',
     description:
-      '围绕环形轨迹布置影像视觉，后续可加入案例 1 式的片元着色器转场和折叠错觉。',
-    specs: ['图像序列', '画册切换', '移动端适配'],
+      '人物插画可以放在画面中心，周围用弧形光带表达记忆环绕。',
+    synopsis:
+      '这条混剪更像回忆片段的排列：相遇、错过、回望和靠近都沿同一条轨道循环出现。',
+    mixDirection:
+      '使用慢速旋转和柔边遮罩，不追求强冲击；每次副歌前让角色视线对齐，形成情绪确认。',
+    credits: [
+      ['Mood', 'Romance / memory'],
+      ['Cut', 'Circular recall'],
+      ['Color', 'Violet and rose'],
+    ],
+    frameNotes: [
+      ['00:14', '擦肩而过', '用相反方向的运动制造错过感。'],
+      ['01:44', '弧形回忆', '圆形遮罩让多个时间点像同一段记忆。'],
+      ['03:02', '视线对齐', '结尾只保留角色眼神和浅色光晕。'],
+    ],
   },
 ];
 
@@ -113,6 +240,23 @@ const els = {
   railProgress: document.querySelector('#railProgress'),
   railItems: document.querySelector('#railItems'),
   hoverLabel: document.querySelector('#hoverLabel'),
+  focusEnterHint: document.querySelector('#focusEnterHint'),
+  detailPage: document.querySelector('#detailPage'),
+  detailBackdrop: document.querySelector('#detailBackdrop'),
+  detailBack: document.querySelector('#detailBack'),
+  detailSound: document.querySelector('#detailSound'),
+  detailKicker: document.querySelector('#detailKicker'),
+  detailTitle: document.querySelector('#detailTitle'),
+  detailLogline: document.querySelector('#detailLogline'),
+  detailPlay: document.querySelector('#detailPlay'),
+  detailSynopsis: document.querySelector('#detailSynopsis'),
+  detailFrameStrip: document.querySelector('#detailFrameStrip'),
+  detailDirection: document.querySelector('#detailDirection'),
+  detailCredits: document.querySelector('#detailCredits'),
+  detailNextCard: document.querySelector('#detailNextCard'),
+  detailPrev: document.querySelector('#detailPrev'),
+  detailNext: document.querySelector('#detailNext'),
+  detailCount: document.querySelector('#detailCount'),
 };
 
 class GalleryExperience {
@@ -133,6 +277,10 @@ class GalleryExperience {
     this.scrollProgress = 0;
     this.soundEnabled = false;
     this.audio = null;
+    this.isDetailOpen = false;
+    this.detailIndex = null;
+    this.detailTransitioning = false;
+    this.detailTimeline = null;
 
     // 镜头相关的 Vector3 会在每一帧复用，减少动画循环中的临时对象创建。
     this.cameraTarget = new THREE.Vector3(0, 1.7, 0);
@@ -167,8 +315,10 @@ class GalleryExperience {
     this.buildGallery();
     this.buildRail();
     this.updateWorkPanel(0);
+    this.renderDetail(0);
     this.bindEvents();
     this.setupScroll();
+    this.handleRoute();
     this.resize();
     this.render();
   }
@@ -203,9 +353,9 @@ class GalleryExperience {
     this.composer.addPass(new RenderPass(this.scene, this.camera));
     this.bloomPass = new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
-      0.62,
-      0.55,
-      0.18,
+      0.36,
+      0.42,
+      0.22,
     );
     this.composer.addPass(this.bloomPass);
     this.composer.addPass(new OutputPass());
@@ -221,7 +371,7 @@ class GalleryExperience {
     rim.position.set(-5, 3, 2);
     this.scene.add(rim);
 
-    const warm = new THREE.PointLight('#fb923c', 18, 16);
+    const warm = new THREE.PointLight('#f8d08a', 14, 16);
     warm.position.set(5, 2, -4);
     this.scene.add(warm);
 
@@ -237,9 +387,9 @@ class GalleryExperience {
     works.forEach((work, index) => {
       const lane = index % 2 === 0 ? -1 : 1;
       const row = Math.floor(index / 2);
-      const x = lane * 2.18;
-      const z = row * -3.3 + 0.45;
-      const rotationY = lane === -1 ? Math.PI * 0.17 : -Math.PI * 0.17;
+      const x = lane * 2.04;
+      const z = row * -3.15 + 0.55;
+      const rotationY = lane === -1 ? Math.PI * 0.1 : -Math.PI * 0.1;
       const card = new THREE.Group();
       card.position.set(x, 1.75, z);
       card.rotation.y = rotationY;
@@ -267,9 +417,9 @@ class GalleryExperience {
       this.coverMeshes.push(cover);
 
       const frameMaterial = new THREE.MeshStandardMaterial({
-        color: '#19191d',
-        roughness: 0.24,
-        metalness: 0.54,
+        color: '#101012',
+        roughness: 0.42,
+        metalness: 0.24,
         transparent: true,
       });
       const horizontalFrame = new THREE.BoxGeometry(CARD_WIDTH + CARD_FRAME * 2, CARD_FRAME, 0.12);
@@ -290,7 +440,7 @@ class GalleryExperience {
         new THREE.MeshBasicMaterial({
           color: work.palette[1],
           transparent: true,
-          opacity: 0.08,
+          opacity: 0.05,
           depthWrite: false,
           blending: THREE.AdditiveBlending,
         }),
@@ -311,9 +461,9 @@ class GalleryExperience {
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(14, 26, 1, 1),
       new THREE.MeshStandardMaterial({
-        color: '#080809',
-        roughness: 0.72,
-        metalness: 0.2,
+        color: '#070707',
+        roughness: 0.86,
+        metalness: 0.12,
       }),
     );
     floor.rotation.x = -Math.PI / 2;
@@ -325,7 +475,7 @@ class GalleryExperience {
       new THREE.MeshBasicMaterial({
         color: '#f8fafc',
         transparent: true,
-        opacity: 0.2,
+        opacity: 0.11,
       }),
     );
     centerLine.rotation.x = -Math.PI / 2;
@@ -334,8 +484,8 @@ class GalleryExperience {
 
     const wallMaterial = new THREE.MeshStandardMaterial({
       color: '#111114',
-      roughness: 0.68,
-      metalness: 0.16,
+      roughness: 0.8,
+      metalness: 0.08,
     });
 
     [-4.35, 4.35].forEach((x) => {
@@ -368,7 +518,7 @@ class GalleryExperience {
   }
 
   addParticles() {
-    const count = 900;
+    const count = 420;
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
     const colorA = new THREE.Color('#f8fafc');
@@ -392,10 +542,10 @@ class GalleryExperience {
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
     const material = new THREE.PointsMaterial({
-      size: 0.025,
+      size: 0.018,
       vertexColors: true,
       transparent: true,
-      opacity: 0.58,
+      opacity: 0.32,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     });
@@ -405,56 +555,92 @@ class GalleryExperience {
   }
 
   createCoverTexture(work) {
-    // 封面不依赖外部图片，直接用 Canvas 画出渐变、线条、标题，再作为 Three.js 纹理使用。
+    // 未填入真实动漫素材时，用 Canvas 生成一张接近海报/人物插画版式的占位封面。
     const canvas = document.createElement('canvas');
     canvas.width = 1024;
     canvas.height = 1400;
     const ctx = canvas.getContext('2d');
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, work.palette[0]);
-    gradient.addColorStop(0.48, work.palette[3]);
-    gradient.addColorStop(1, work.palette[1]);
+    gradient.addColorStop(0, work.palette[3]);
+    gradient.addColorStop(0.48, '#121215');
+    gradient.addColorStop(1, work.palette[0]);
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    for (let i = 0; i < 34; i += 1) {
+    const accentGradient = ctx.createRadialGradient(650, 420, 40, 650, 420, 640);
+    accentGradient.addColorStop(0, `${work.accentColor}cc`);
+    accentGradient.addColorStop(0.38, `${work.palette[0]}66`);
+    accentGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = accentGradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < 20; i += 1) {
       ctx.save();
-      ctx.globalAlpha = 0.08 + Math.random() * 0.14;
-      ctx.strokeStyle = i % 2 ? work.palette[2] : '#ffffff';
-      ctx.lineWidth = 4 + Math.random() * 18;
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.rotate((i / 34) * Math.PI * 2);
+      ctx.globalAlpha = 0.045 + Math.random() * 0.09;
+      ctx.strokeStyle = i % 2 ? work.accentColor : '#ffffff';
+      ctx.lineWidth = 2 + Math.random() * 7;
+      ctx.translate(canvas.width * 0.58, canvas.height * 0.47);
+      ctx.rotate((i / 20) * Math.PI * 1.45);
       ctx.beginPath();
-      ctx.ellipse(0, 0, 120 + i * 17, 44 + i * 8, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, 96 + i * 22, 24 + i * 9, 0, 0, Math.PI * 2);
       ctx.stroke();
       ctx.restore();
     }
 
-    ctx.globalAlpha = 0.78;
-    ctx.fillStyle = 'rgba(5, 5, 6, 0.42)';
-    ctx.fillRect(74, 76, canvas.width - 148, canvas.height - 152);
+    ctx.save();
+    ctx.translate(590, 664);
+    ctx.fillStyle = 'rgba(248, 250, 252, 0.08)';
+    ctx.beginPath();
+    ctx.ellipse(0, 8, 182, 246, -0.12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(248, 250, 252, 0.16)';
+    ctx.beginPath();
+    ctx.arc(0, -248, 108, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = `${work.palette[0]}55`;
+    ctx.beginPath();
+    ctx.moveTo(-208, 358);
+    ctx.quadraticCurveTo(0, 216, 226, 358);
+    ctx.lineTo(250, 520);
+    ctx.lineTo(-244, 520);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
     ctx.globalAlpha = 1;
+    ctx.fillStyle = 'rgba(5, 5, 6, 0.28)';
+    ctx.fillRect(68, 74, canvas.width - 136, canvas.height - 148);
 
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.72)';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(92, 94, canvas.width - 184, canvas.height - 188);
+    ctx.strokeStyle = 'rgba(248, 245, 235, 0.72)';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(86, 92, canvas.width - 172, canvas.height - 184);
+    ctx.strokeStyle = `${work.accentColor}cc`;
+    ctx.beginPath();
+    ctx.moveTo(86, 1198);
+    ctx.lineTo(362, 1198);
+    ctx.stroke();
 
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '700 76px "PingFang SC", "Microsoft YaHei", sans-serif';
-    wrapCanvasText(ctx, work.title, 118, 262, 780, 92);
-
+    ctx.fillStyle = 'rgba(248, 245, 235, 0.88)';
+    ctx.font = '600 28px Inter, Arial, sans-serif';
+    ctx.fillText(`FF-${work.index}`, 116, 150);
     ctx.font = '500 28px "PingFang SC", "Microsoft YaHei", sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.74)';
-    ctx.fillText(work.meta, 118, 408);
+    ctx.fillText(work.category, 236, 150);
 
-    ctx.font = '800 180px Inter, Arial, sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-    ctx.fillText(work.index, 110, 1110);
+    ctx.fillStyle = '#fff9ec';
+    ctx.font = '700 92px "PingFang SC", "Microsoft YaHei", sans-serif';
+    wrapCanvasText(ctx, work.title, 116, 1028, 770, 104);
 
-    ctx.fillStyle = work.palette[1];
-    ctx.fillRect(118, 1174, 260, 9);
-    ctx.fillStyle = work.palette[2];
-    ctx.fillRect(118, 1202, 168, 9);
+    ctx.font = '500 27px "PingFang SC", "Microsoft YaHei", sans-serif';
+    ctx.fillStyle = 'rgba(255, 249, 236, 0.7)';
+    wrapCanvasText(ctx, work.logline, 118, 1188, 764, 42);
+
+    ctx.font = '800 168px Inter, Arial, sans-serif';
+    ctx.fillStyle = 'rgba(255, 249, 236, 0.06)';
+    ctx.fillText(work.index, 642, 324);
+
+    ctx.font = '600 24px Inter, Arial, sans-serif';
+    ctx.fillStyle = `${work.accentColor}dd`;
+    ctx.fillText(work.transitionMood.toUpperCase(), 118, 1288);
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -483,12 +669,21 @@ class GalleryExperience {
     window.addEventListener('wheel', () => this.cancelJumpRoute(), { passive: true });
     window.addEventListener('touchstart', () => this.cancelJumpRoute(), { passive: true });
     window.addEventListener('click', (event) => {
+      if (this.isDetailOpen) {
+        return;
+      }
+
       if (event.target.closest('button, a')) {
         return;
       }
 
       if (this.focusedIndex !== null) {
-        // 聚焦状态下点击空白区域返回普通浏览状态。
+        const hit = this.getCoverHit(event.clientX, event.clientY);
+        if (hit?.object.userData.index === this.focusedIndex && this.focusBlend > 0.72) {
+          this.openWorkDetail(this.focusedIndex);
+          return;
+        }
+
         this.clearFocus();
         return;
       }
@@ -507,20 +702,49 @@ class GalleryExperience {
       this.focusWork(this.activeIndex);
     });
     els.soundToggle.addEventListener('click', () => this.toggleSound());
+    els.detailSound.addEventListener('click', () => this.toggleSound());
+    els.detailPrev.addEventListener('click', () => this.goToAdjacentDetail(-1));
+    els.detailNext.addEventListener('click', () => this.goToAdjacentDetail(1));
+    els.detailNextCard.addEventListener('click', () => this.goToAdjacentDetail(1));
+    els.detailBack.addEventListener('click', (event) => {
+      event.preventDefault();
+      window.location.hash = '#/';
+    });
+    els.detailPlay.addEventListener('click', () => {
+      els.detailPlay.classList.toggle('is-playing');
+      els.detailPlay.querySelector('span').textContent = els.detailPlay.classList.contains('is-playing')
+        ? 'PAUSE'
+        : 'PLAY';
+      this.playPulse(220, 0.09);
+    });
     document.querySelector('a[href="#gallery"]')?.addEventListener('click', (event) => {
       event.preventDefault();
       this.routeToProgress(0);
     });
-    document.querySelector('a[href="#collection"]')?.addEventListener('click', (event) => {
-      event.preventDefault();
-      this.routeToProgress(0.5);
-    });
 
     window.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
+        if (this.isDetailOpen) {
+          window.location.hash = '#/';
+          return;
+        }
         this.clearFocus();
       }
+
+      if (!this.isDetailOpen) {
+        return;
+      }
+
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+        this.goToAdjacentDetail(-1);
+      }
+
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+        this.goToAdjacentDetail(1);
+      }
     });
+
+    window.addEventListener('hashchange', () => this.handleRoute());
   }
 
   setupScroll() {
@@ -537,6 +761,206 @@ class GalleryExperience {
         this.updateWorkPanel(index, this.galleryProgress);
       },
     });
+  }
+
+  handleRoute() {
+    const hash = window.location.hash || '#/';
+
+    if (hash.startsWith(DETAIL_ROUTE_PREFIX)) {
+      const id = decodeURIComponent(hash.slice(DETAIL_ROUTE_PREFIX.length));
+      const index = works.findIndex((work) => work.id === id);
+      if (index === -1) {
+        window.location.hash = '#/';
+        return;
+      }
+      this.showDetail(index);
+      return;
+    }
+
+    this.hideDetail();
+  }
+
+  openWorkDetail(index) {
+    const work = works[index];
+    if (!work) {
+      return;
+    }
+
+    this.detailTransitioning = true;
+    document.body.classList.add('is-entering-detail');
+    this.playPulse(90, 0.12);
+    window.setTimeout(() => {
+      window.location.hash = `${DETAIL_ROUTE_PREFIX}${encodeURIComponent(work.id)}`;
+    }, 180);
+  }
+
+  showDetail(index) {
+    const targetIndex = THREE.MathUtils.clamp(index, 0, LAST_WORK_INDEX);
+    const wasOpen = this.isDetailOpen;
+    this.detailIndex = targetIndex;
+    this.isDetailOpen = true;
+    this.detailTransitioning = false;
+    this.cancelJumpRoute();
+    this.clearFocus();
+    this.scrollToProgress(targetIndex / Math.max(LAST_WORK_INDEX, 1), 'auto');
+    this.renderDetail(targetIndex);
+
+    els.detailPage.setAttribute('aria-hidden', 'false');
+    document.body.classList.remove('is-entering-detail');
+    document.body.classList.add('is-detail');
+
+    if (!wasOpen) {
+      els.detailPage.scrollTop = 0;
+    }
+    this.animateDetailIn(wasOpen);
+  }
+
+  hideDetail() {
+    if (!this.isDetailOpen && !document.body.classList.contains('is-detail')) {
+      return;
+    }
+
+    this.isDetailOpen = false;
+    this.detailIndex = null;
+    this.detailTransitioning = false;
+    this.detailTimeline?.kill();
+    els.detailPage.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('is-detail', 'is-entering-detail');
+    els.detailPlay.classList.remove('is-playing');
+    els.detailPlay.querySelector('span').textContent = 'PLAY';
+    ScrollTrigger.refresh();
+  }
+
+  goToAdjacentDetail(direction) {
+    if (!this.isDetailOpen || this.detailTransitioning) {
+      return;
+    }
+
+    const source = this.detailIndex ?? this.activeIndex;
+    const nextIndex = (source + direction + WORK_COUNT) % WORK_COUNT;
+    const nextWork = works[nextIndex];
+    this.detailTransitioning = true;
+    this.playPulse(direction > 0 ? 180 : 130, 0.08);
+    window.location.hash = `${DETAIL_ROUTE_PREFIX}${encodeURIComponent(nextWork.id)}`;
+  }
+
+  renderDetail(index) {
+    const work = works[index];
+    if (!work) {
+      return;
+    }
+
+    const nextWork = works[(index + 1) % WORK_COUNT];
+    els.detailPage.style.setProperty('--detail-accent', work.accentColor);
+    els.detailPage.style.setProperty('--detail-accent-soft', `${work.accentColor}33`);
+    els.detailPage.style.setProperty('--detail-dark', work.palette[3]);
+    els.detailKicker.textContent = `FF-${work.index} / ${work.category} / ${work.duration}`;
+    els.detailTitle.textContent = work.title;
+    els.detailLogline.textContent = work.logline;
+    els.detailSynopsis.textContent = work.synopsis;
+    els.detailDirection.textContent = work.mixDirection;
+    els.detailCount.textContent = `${work.index} / ${String(WORK_COUNT).padStart(2, '0')}`;
+    els.detailPrev.textContent = `Prev`;
+    els.detailNext.textContent = `Next`;
+
+    els.detailBackdrop.innerHTML = '';
+    if (work.videoSrc) {
+      const video = document.createElement('video');
+      video.className = 'detail-video';
+      video.src = work.videoSrc;
+      video.poster = work.posterSrc || work.coverImage;
+      video.muted = true;
+      video.loop = true;
+      video.playsInline = true;
+      video.autoplay = true;
+      els.detailBackdrop.appendChild(video);
+    } else if (work.posterSrc || work.coverImage) {
+      const image = document.createElement('img');
+      image.className = 'detail-poster';
+      image.src = work.posterSrc || work.coverImage;
+      image.alt = `${work.title} cover`;
+      els.detailBackdrop.appendChild(image);
+    }
+    els.detailBackdrop.style.setProperty('--poster-a', work.palette[0]);
+    els.detailBackdrop.style.setProperty('--poster-b', work.palette[1]);
+    els.detailBackdrop.style.setProperty('--poster-c', work.palette[2]);
+    els.detailBackdrop.style.setProperty('--poster-d', work.palette[3]);
+    els.detailBackdrop.dataset.mood = work.transitionMood;
+
+    els.detailFrameStrip.innerHTML = work.frameNotes
+      .map(
+        ([time, label, note], noteIndex) => `
+          <article class="frame-note" style="--frame-delay: ${noteIndex * 0.05}s">
+            <div class="frame-thumb" aria-hidden="true">
+              <span>${time}</span>
+            </div>
+            <p>${time}</p>
+            <h4>${label}</h4>
+            <span>${note}</span>
+          </article>
+        `,
+      )
+      .join('');
+
+    els.detailCredits.innerHTML = work.credits
+      .map(([term, value]) => `<div><dt>${term}</dt><dd>${value}</dd></div>`)
+      .join('');
+
+    els.detailNextCard.innerHTML = `
+      <span>Next Mix</span>
+      <strong>${nextWork.index} ${nextWork.title}</strong>
+      <small>${nextWork.meta}</small>
+    `;
+  }
+
+  animateDetailIn(wasOpen) {
+    this.detailTimeline?.kill();
+    const sections = els.detailPage.querySelectorAll('.detail-section');
+    const hud = els.detailPage.querySelectorAll('.detail-hud');
+    const frameNotes = els.detailPage.querySelectorAll('.frame-note');
+    const duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.01 : 0.72;
+
+    this.detailTimeline = gsap.timeline({
+      defaults: {
+        ease: 'power3.out',
+      },
+      onComplete: () => {
+        this.detailTransitioning = false;
+      },
+    });
+
+    if (!wasOpen) {
+      this.detailTimeline.fromTo(
+        els.detailBackdrop,
+        { opacity: 0, scale: 1.04, filter: 'blur(10px)' },
+        { opacity: 1, scale: 1, filter: 'blur(0px)', duration },
+      );
+    } else {
+      this.detailTimeline.fromTo(
+        els.detailBackdrop,
+        { opacity: 0.58, scale: 1.025, filter: 'blur(7px)' },
+        { opacity: 1, scale: 1, filter: 'blur(0px)', duration: duration * 0.82 },
+      );
+    }
+
+    this.detailTimeline.fromTo(
+      sections,
+      { opacity: 0, y: 22 },
+      { opacity: 1, y: 0, duration: 0.46, stagger: 0.055 },
+      '-=0.34',
+    );
+    this.detailTimeline.fromTo(
+      hud,
+      { opacity: 0 },
+      { opacity: 1, duration: 0.28, stagger: 0.04 },
+      '-=0.26',
+    );
+    this.detailTimeline.fromTo(
+      frameNotes,
+      { opacity: 0, y: 18 },
+      { opacity: 1, y: 0, duration: 0.36, stagger: 0.045 },
+      '-=0.2',
+    );
   }
 
   routeToProgress(progress) {
@@ -619,6 +1043,11 @@ class GalleryExperience {
   }
 
   updateHover() {
+    if (this.isDetailOpen) {
+      this.clearHover();
+      return;
+    }
+
     // 聚焦动画期间不做悬停放大，避免两个动画同时抢同一个卡片缩放。
     if (this.focusedIndex !== null || this.focusBlend > 0.08) {
       this.clearHover();
@@ -701,6 +1130,7 @@ class GalleryExperience {
     this.updateWorkPanel(this.focusedIndex, this.galleryProgress);
     this.scrollToProgress(this.focusedIndex / Math.max(LAST_WORK_INDEX, 1));
     document.body.classList.add('is-focused');
+    els.focusEnterHint.classList.add('is-visible');
     els.openActiveWork.querySelector('span').textContent = '返回浏览';
     this.playPulse(140, 0.08);
   }
@@ -711,7 +1141,8 @@ class GalleryExperience {
     }
     this.focusedIndex = null;
     document.body.classList.remove('is-focused');
-    els.openActiveWork.querySelector('span').textContent = '聚焦当前作品';
+    els.focusEnterHint.classList.remove('is-visible');
+    els.openActiveWork.querySelector('span').textContent = '聚焦当前封面';
   }
 
   toggleSound() {
@@ -720,6 +1151,7 @@ class GalleryExperience {
       ? '<i data-lucide="volume-2"></i>'
       : '<i data-lucide="volume-x"></i>';
     createIcons({ icons: { Volume2, VolumeX } });
+    els.detailSound.textContent = this.soundEnabled ? 'Sound on' : 'Sound off';
 
     if (this.soundEnabled && !this.audio) {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
