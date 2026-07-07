@@ -22,6 +22,14 @@ const CARD_FRAME = 0.08;
 const DEFAULT_CAMERA_FOV = 46;
 const MAX_FRAME_DELTA = 0.05;
 const DETAIL_ROUTE_PREFIX = '#/works/';
+const DETAIL_STATES = {
+  gallery: 'gallery',
+  intro: 'detail:intro',
+  idle: 'detail:idle',
+  switching: 'detail:switching',
+  info: 'detail:info',
+  playing: 'detail:playing',
+};
 
 /**
  * 页面展示的数据源。
@@ -314,6 +322,7 @@ class GalleryExperience {
     this.detailTimeline = null;
     this.isPlayerOpen = false;
     this.isInfoOpen = false;
+    this.detailState = DETAIL_STATES.gallery;
 
     // 镜头相关的 Vector3 会在每一帧复用，减少动画循环中的临时对象创建。
     this.cameraTarget = new THREE.Vector3(0, 1.7, 0);
@@ -870,6 +879,7 @@ class GalleryExperience {
     this.detailTransitioning = true;
     this.isPlayerOpen = false;
     this.isInfoOpen = false;
+    this.setDetailState(DETAIL_STATES.intro);
     this.cancelJumpRoute();
     this.clearFocus();
     this.scrollToProgress(targetIndex / Math.max(LAST_WORK_INDEX, 1), 'auto');
@@ -900,6 +910,7 @@ class GalleryExperience {
     els.workInfo.setAttribute('aria-hidden', 'true');
     els.workPlayer.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('is-detail', 'is-entering-detail', 'is-detail-playing', 'is-detail-info');
+    this.setDetailState(DETAIL_STATES.gallery);
     els.detailPlay.classList.remove('is-playing');
     els.detailPlay.querySelector('span').textContent = 'PLAY';
     ScrollTrigger.refresh();
@@ -921,7 +932,28 @@ class GalleryExperience {
     this.renderWorkDetail(index, els.workMediaCurrent);
   }
 
-  renderWorkDetail(index, mediaLayer = els.workMediaCurrent) {
+  setDetailState(state) {
+    this.detailState = state;
+    els.detailPage.dataset.state = state;
+    document.body.dataset.detailState = state;
+  }
+
+  renderWorkDetail(index, mediaLayer = els.workMediaCurrent, options = {}) {
+    const work = works[index];
+    if (!work) {
+      return;
+    }
+
+    this.renderMediaLayer(mediaLayer, work);
+
+    if (options.updateText === false) {
+      return;
+    }
+
+    this.updateDetailText(index);
+  }
+
+  updateDetailText(index) {
     const work = works[index];
     if (!work) {
       return;
@@ -933,7 +965,7 @@ class GalleryExperience {
     els.detailPage.style.setProperty('--detail-accent-soft', `${work.accentColor}33`);
     els.detailPage.style.setProperty('--detail-dark', work.palette[3]);
     els.detailKicker.textContent = `#${work.index.padStart(3, '0')}`;
-    els.detailCategory.textContent = `${work.meta} / ${work.duration}`;
+    els.detailCategory.textContent = work.category;
     els.detailTitle.textContent = work.title;
     els.detailLogline.textContent = work.shortDescription || work.logline;
     els.detailInfoIndex.textContent = `#${work.index.padStart(3, '0')} / INFO`;
@@ -941,11 +973,12 @@ class GalleryExperience {
     els.detailInfoDescription.textContent = work.infoDescription || work.synopsis;
     els.detailDirection.textContent = work.mixDirection;
     els.detailCount.textContent = `${work.index.padStart(3, '0')} / ${String(WORK_COUNT).padStart(3, '0')}`;
+    els.detailPrev.querySelector('span').textContent = `#${prevWork.index.padStart(3, '0')}`;
+    els.detailNext.querySelector('span').textContent = `#${nextWork.index.padStart(3, '0')}`;
     els.detailPrevTitle.textContent = prevWork.title;
     els.detailNextTitle.textContent = nextWork.title;
     els.detailPlayerStatus.textContent = `${work.title} / preview`;
 
-    this.renderMediaLayer(mediaLayer, work);
     els.detailPage.dataset.mood = work.transitionMood;
 
     els.detailFrameStrip.innerHTML = work.frameNotes
@@ -1014,6 +1047,7 @@ class GalleryExperience {
       },
       onComplete: () => {
         this.detailTransitioning = false;
+        this.setDetailState(DETAIL_STATES.idle);
       },
     });
 
@@ -1046,18 +1080,20 @@ class GalleryExperience {
       return;
     }
 
-    this.detailTransitioning = true;
     this.closePlayer();
     this.toggleInfo(false);
+    this.detailTransitioning = true;
+    this.setDetailState(DETAIL_STATES.switching);
     this.detailTimeline?.kill();
-    this.renderWorkDetail(targetIndex, els.workMediaNext);
+    this.renderWorkDetail(targetIndex, els.workMediaNext, { updateText: false });
 
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const duration = reduce ? 0.01 : 0.9;
-    const xOffset = direction > 0 ? 46 : -46;
+    const xOffset = direction > 0 ? 34 : -34;
+    const copyOutY = direction > 0 ? -18 : 18;
 
-    gsap.set(els.workMediaNext, { autoAlpha: 1, scale: 1.045, x: xOffset, filter: 'blur(6px)' });
-    gsap.set(els.workVisualMask, { autoAlpha: 0.62, xPercent: direction > 0 ? -115 : 115 });
+    gsap.set(els.workMediaNext, { autoAlpha: 1, scale: 1.035, x: xOffset, filter: 'blur(3px)' });
+    gsap.set(els.workVisualMask, { autoAlpha: 0.48, xPercent: direction > 0 ? -115 : 115 });
 
     this.detailTimeline = gsap.timeline({
       defaults: { ease: 'power3.inOut' },
@@ -1076,28 +1112,32 @@ class GalleryExperience {
         gsap.set(els.workVisualMask, { clearProps: 'opacity,visibility,transform' });
         this.detailIndex = targetIndex;
         this.detailTransitioning = false;
+        this.setDetailState(DETAIL_STATES.idle);
       },
     });
 
     this.detailTimeline
-      .to(els.workMediaCurrent, { autoAlpha: 0, scale: 0.985, x: -xOffset * 0.45, duration }, 0)
+      .to(els.workCopy.children, { autoAlpha: 0, y: copyOutY, duration: 0.26, stagger: 0.025, ease: 'power2.in' }, 0)
+      .to(els.workMediaCurrent, { autoAlpha: 0, scale: 0.985, x: -xOffset * 0.35, duration }, 0)
       .to(els.workMediaNext, { scale: 1, x: 0, filter: 'blur(0px)', duration }, 0)
       .to(els.workVisualMask, { xPercent: direction > 0 ? 115 : -115, duration: duration * 0.82 }, 0.04)
+      .call(() => this.updateDetailText(targetIndex), null, duration * 0.42)
       .fromTo(
         els.workCopy.children,
-        { autoAlpha: 0, y: 20 },
+        { autoAlpha: 0, y: -copyOutY },
         { autoAlpha: 1, y: 0, duration: 0.45, stagger: 0.055, ease: 'power3.out' },
         duration * 0.42,
       );
   }
 
   openPlayer() {
-    if (!this.isDetailOpen || this.detailTransitioning) {
+    if (!this.isDetailOpen || this.detailTransitioning || this.detailState === DETAIL_STATES.info) {
       return;
     }
 
     this.isPlayerOpen = true;
     this.toggleInfo(false);
+    this.setDetailState(DETAIL_STATES.playing);
     els.workPlayer.setAttribute('aria-hidden', 'false');
     document.body.classList.add('is-detail-playing');
     els.detailPlay.classList.add('is-playing');
@@ -1116,10 +1156,13 @@ class GalleryExperience {
     document.body.classList.remove('is-detail-playing');
     els.detailPlay.classList.remove('is-playing');
     els.detailPlay.querySelector('span').textContent = 'PLAY';
+    if (this.isDetailOpen && !this.detailTransitioning && !this.isInfoOpen) {
+      this.setDetailState(DETAIL_STATES.idle);
+    }
   }
 
   toggleInfo(force) {
-    if (!this.isDetailOpen) {
+    if (!this.isDetailOpen || this.detailTransitioning) {
       return;
     }
 
@@ -1130,6 +1173,7 @@ class GalleryExperience {
     }
     els.workInfo.setAttribute('aria-hidden', nextState ? 'false' : 'true');
     document.body.classList.toggle('is-detail-info', nextState);
+    this.setDetailState(nextState ? DETAIL_STATES.info : DETAIL_STATES.idle);
   }
 
   syncDetailMediaSound() {

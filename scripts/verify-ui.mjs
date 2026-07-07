@@ -74,6 +74,7 @@ async function verifyViewport({ name, width, height, clickCover, focusButton }) 
       path: join(outputDir, 'detail-open.png'),
       fullPage: false,
     });
+    await assertWorkPageLayout(page, 'desktop');
     await page.locator('#detailPlay').click();
     await page.waitForFunction(() => document.body.classList.contains('is-detail-playing'));
     await page.waitForTimeout(340);
@@ -132,6 +133,7 @@ async function verifyViewport({ name, width, height, clickCover, focusButton }) 
     await page.waitForFunction(() => document.body.classList.contains('is-detail'));
     await page.waitForFunction(() => !window.galleryExperience.detailTransitioning);
     await assertDetailOpen(page, 0);
+    await assertWorkPageLayout(page, 'mobile');
     await page.screenshot({
       path: join(outputDir, 'mobile-detail.png'),
       fullPage: false,
@@ -196,6 +198,7 @@ async function assertDetailOpen(page, expectedIndex) {
     sectionCount: document.querySelectorAll('.detail-section').length,
     hash: window.location.hash,
     hidden: document.querySelector('#detailPage')?.getAttribute('aria-hidden'),
+    activeMediaChildren: document.querySelector('#workMediaCurrent')?.children.length,
   }));
 
   if (!state.isDetail || state.hidden !== 'false') {
@@ -212,15 +215,24 @@ async function assertDetailOpen(page, expectedIndex) {
   ) {
     throw new Error(`detail content mismatch: ${JSON.stringify(state)}`);
   }
+
+  if (!state.activeMediaChildren) {
+    throw new Error(`active media layer is empty: ${JSON.stringify(state)}`);
+  }
 }
 
 async function assertPlayerOpen(page) {
   const state = await page.evaluate(() => ({
     playerHidden: document.querySelector('#workPlayer')?.getAttribute('aria-hidden'),
     copyOpacity: getComputedStyle(document.querySelector('#workCopy')).opacity,
+    playerBackground: getComputedStyle(document.querySelector('#workPlayer')).backgroundColor,
   }));
 
-  if (state.playerHidden !== 'false' || Number(state.copyOpacity) > 0.08) {
+  if (
+    state.playerHidden !== 'false' ||
+    Number(state.copyOpacity) > 0.08 ||
+    !isDarkColor(state.playerBackground)
+  ) {
     throw new Error(`player layer did not hide copy: ${JSON.stringify(state)}`);
   }
 }
@@ -230,11 +242,104 @@ async function assertInfoOpen(page) {
     infoHidden: document.querySelector('#workInfo')?.getAttribute('aria-hidden'),
     notes: document.querySelectorAll('.work-frame-note').length,
     title: document.querySelector('#detailInfoTitle')?.textContent,
+    background: getComputedStyle(document.querySelector('#workInfo')).backgroundColor,
   }));
 
-  if (state.infoHidden !== 'false' || state.notes < 3 || !state.title) {
+  if (
+    state.infoHidden !== 'false' ||
+    state.notes < 3 ||
+    !state.title ||
+    colorLuminance(state.background) < 0.78
+  ) {
     throw new Error(`info layer did not open: ${JSON.stringify(state)}`);
   }
+}
+
+async function assertWorkPageLayout(page, mode) {
+  const layout = await page.evaluate(() => {
+    const rect = (selector) => {
+      const element = document.querySelector(selector);
+      if (!element) {
+        return null;
+      }
+      const bounds = element.getBoundingClientRect();
+      const styles = getComputedStyle(element);
+      return {
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height,
+        display: styles.display,
+        opacity: styles.opacity,
+        fontSize: styles.fontSize,
+      };
+    };
+
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      copy: rect('#workCopy'),
+      play: rect('#detailPlay'),
+      title: rect('#detailTitle'),
+      logline: rect('#detailLogline'),
+      infoButton: rect('#detailInfoToggle'),
+      navi: rect('.work-navi'),
+      media: rect('#workMediaCurrent > *'),
+    };
+  });
+
+  if (!layout.copy || !layout.play || !layout.title || !layout.navi || !layout.media) {
+    throw new Error(`work layout missing elements: ${JSON.stringify(layout)}`);
+  }
+
+  if (mode === 'desktop') {
+    const expectedCopyX = (layout.width - layout.copy.width) / 2;
+    if (
+      layout.copy.width < 820 ||
+      layout.copy.width > 940 ||
+      Math.abs(layout.copy.x - expectedCopyX) > 34 ||
+      layout.play.width < 145 ||
+      layout.play.width > 172 ||
+      layout.play.height < 145 ||
+      layout.play.height > 172 ||
+      layout.title.width > 740
+    ) {
+      throw new Error(`desktop detail layout drifted from TAO-style proportions: ${JSON.stringify(layout)}`);
+    }
+  } else {
+    if (
+      layout.copy.y < 70 ||
+      layout.copy.y > 118 ||
+      layout.play.width < 96 ||
+      layout.play.width > 116 ||
+      layout.play.height < 96 ||
+      layout.play.height > 116 ||
+      layout.logline.display !== 'none' ||
+      layout.infoButton.width < 80
+    ) {
+      throw new Error(`mobile detail layout drifted from TAO-style proportions: ${JSON.stringify(layout)}`);
+    }
+  }
+}
+
+function colorLuminance(color) {
+  const [r, g, b] = parseRgb(color);
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+}
+
+function isDarkColor(color) {
+  return colorLuminance(color) < 0.08;
+}
+
+function parseRgb(color) {
+  const match = color.match(/rgba?\(([^)]+)\)/);
+  if (!match) {
+    return [0, 0, 0];
+  }
+  return match[1]
+    .split(',')
+    .slice(0, 3)
+    .map((value) => Number.parseFloat(value.trim()));
 }
 
 async function getActiveCoverCenter(page) {
