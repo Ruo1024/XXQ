@@ -53,52 +53,62 @@
     </div>
 
     <section class="detail-page" id="detailPage" aria-live="polite" aria-hidden="true">
-      <div class="detail-backdrop" id="detailBackdrop"></div>
-      <header class="detail-hud detail-hud-top">
-        <a class="detail-back" id="detailBack" href="#/" aria-label="返回画廊">All Frames</a>
-        <button class="detail-sound" id="detailSound" type="button">Sound</button>
+      <div class="work-visual-stage" id="workVisualStage">
+        <div class="work-media-layer is-active" id="workMediaCurrent"></div>
+        <div class="work-media-layer" id="workMediaNext"></div>
+        <div class="work-visual-mask" id="workVisualMask"></div>
+      </div>
+
+      <header class="work-hud work-hud-top">
+        <a class="work-back" id="detailBack" href="#/" aria-label="返回画廊">
+          <span>FLOWFRAME</span>
+          <small>All Frames</small>
+        </a>
+        <button class="work-sound" id="detailSound" type="button">Sound Off</button>
       </header>
 
-      <main class="detail-stage">
-        <section class="detail-section detail-hero" data-detail-section="opening">
-          <p class="detail-kicker" id="detailKicker">FF-001 / AMV</p>
-          <h2 id="detailTitle">Loading</h2>
-          <p class="detail-logline" id="detailLogline"></p>
-          <button class="detail-play" id="detailPlay" type="button">
+      <main class="work-copy" id="workCopy">
+        <div class="work-copy-header">
+          <span id="detailKicker">#001</span>
+          <span id="detailCategory">AMV / anime mix</span>
+        </div>
+        <h2 id="detailTitle">Loading</h2>
+        <p id="detailLogline"></p>
+        <div class="work-actions">
+          <button class="work-play" id="detailPlay" type="button" aria-label="播放混剪">
             <span>PLAY</span>
           </button>
-        </section>
-
-        <section class="detail-section detail-copy" data-detail-section="synopsis">
-          <p class="detail-section-index">01 / Synopsis</p>
-          <h3>情绪线索</h3>
-          <p id="detailSynopsis"></p>
-        </section>
-
-        <section class="detail-section detail-frames" data-detail-section="frames">
-          <p class="detail-section-index">02 / Frame Notes</p>
-          <h3>关键帧注释</h3>
-          <div class="frame-strip" id="detailFrameStrip"></div>
-        </section>
-
-        <section class="detail-section detail-copy detail-direction" data-detail-section="direction">
-          <p class="detail-section-index">03 / Mix Direction</p>
-          <h3>混剪方向</h3>
-          <p id="detailDirection"></p>
-          <dl class="detail-credits" id="detailCredits"></dl>
-        </section>
-
-        <section class="detail-section detail-next" data-detail-section="next">
-          <p class="detail-section-index">04 / Next Mix</p>
-          <button class="detail-next-card" id="detailNextCard" type="button"></button>
-        </section>
+          <button class="work-info-button" id="detailInfoToggle" type="button">Info</button>
+        </div>
       </main>
 
-      <footer class="detail-hud detail-hud-bottom">
-        <button class="detail-nav" id="detailPrev" type="button">Prev</button>
-        <span id="detailCount">01 / 06</span>
-        <button class="detail-nav" id="detailNext" type="button">Next</button>
-      </footer>
+      <nav class="work-navi" aria-label="作品切换">
+        <button class="work-nav work-nav-prev" id="detailPrev" type="button">
+          <span>Prev</span>
+          <strong id="detailPrevTitle"></strong>
+        </button>
+        <span class="work-count" id="detailCount">001 / 006</span>
+        <button class="work-nav work-nav-next" id="detailNext" type="button">
+          <span>Next</span>
+          <strong id="detailNextTitle"></strong>
+        </button>
+      </nav>
+
+      <aside class="work-info" id="workInfo" aria-hidden="true">
+        <button class="work-info-close" id="detailInfoClose" type="button">Back</button>
+        <p class="work-info-index" id="detailInfoIndex">#001 / INFO</p>
+        <h3 id="detailInfoTitle">Mix Notes</h3>
+        <p id="detailInfoDescription"></p>
+        <h4>Frame Notes</h4>
+        <div class="work-frame-notes" id="detailFrameStrip"></div>
+        <h4>Mix Direction</h4>
+        <p id="detailDirection"></p>
+      </aside>
+
+      <div class="work-player" id="workPlayer" aria-hidden="true">
+        <button class="work-player-close" id="detailPlayerClose" type="button">Close</button>
+        <span id="detailPlayerStatus">Playing preview</span>
+      </div>
     </section>
 
     <div class="hover-label" id="hoverLabel" aria-hidden="true"></div>

@@ -38,11 +38,14 @@ const works = [
     tags: ['AMV', 'Character Cut', 'Warm Light'],
     palette: ['#f25f4c', '#f8d08a', '#2f6f73', '#0b0b0d'],
     accentColor: '#f8d08a',
-    transitionMood: '光带拖影',
+    transitionMood: 'sharp',
     coverImage: '',
     posterSrc: '',
     videoSrc: '',
     logline: '夕阳、追逐和高燃副歌被剪成一段持续推进的角色开场。',
+    shortDescription: '夕阳、追逐和高燃副歌被剪成一段持续推进的角色开场。',
+    infoDescription:
+      '这一组混剪以角色从静止到爆发的情绪推进为主，封面、视频和关键帧都可以按同一条暖色光线组织。',
     description:
       '暖色光带包裹人物轮廓，封面像一张未放映的番剧海报，等待进入完整混剪。',
     synopsis:
@@ -70,11 +73,14 @@ const works = [
     tags: ['AMV', 'Soft Cut', 'Blue Tone'],
     palette: ['#58d7c7', '#7db8ff', '#f5f0e8', '#071013'],
     accentColor: '#7db8ff',
-    transitionMood: '柔和溶解',
+    transitionMood: 'soft',
     coverImage: '',
     posterSrc: '',
     videoSrc: '',
     logline: '把日常、海风和眼神停顿剪成一段低频的蓝色回声。',
+    shortDescription: '把日常、海风和眼神停顿剪成一段低频的蓝色回声。',
+    infoDescription:
+      '这一页适合放入日常向或治愈向混剪素材，画面稳定期尽量让角色表情和环境声感成为主角。',
     description:
       '低饱和蓝绿色建立安静气质，人物插画区域预留给后续封面素材。',
     synopsis:
@@ -102,11 +108,14 @@ const works = [
     tags: ['AMV', 'Dark Cut', 'Impact'],
     palette: ['#c2413a', '#f36b36', '#eee7dc', '#120d0b'],
     accentColor: '#f36b36',
-    transitionMood: '颗粒残影',
+    transitionMood: 'grain',
     coverImage: '',
     posterSrc: '',
     videoSrc: '',
     logline: '暗红颗粒和火星残影把对战镜头整理成一份角色档案。',
+    shortDescription: '暗红颗粒和火星残影把对战镜头整理成一份角色档案。',
+    infoDescription:
+      '这一组更适合悬疑、战斗或反派角色混剪，用暗部和瞬间颗粒制造压迫，而不是让特效持续盖住素材。',
     description:
       '暗场和高反差保留角色神秘感，适合后续填入悬疑或战斗向人物封面。',
     synopsis:
@@ -134,11 +143,14 @@ const works = [
     tags: ['AMV', 'Refraction', 'Clean Cut'],
     palette: ['#9edfc7', '#73a7ef', '#f2dfad', '#0a1018'],
     accentColor: '#73a7ef',
-    transitionMood: '透明折射',
+    transitionMood: 'scan',
     coverImage: '',
     posterSrc: '',
     videoSrc: '',
     logline: '用玻璃折射、高光边缘和干净切点组织一段未来感人物混剪。',
+    shortDescription: '用玻璃折射、高光边缘和干净切点组织一段未来感人物混剪。',
+    infoDescription:
+      '这一页适合科幻、机甲、都市夜景等素材，切换时给一点折射和扫描，阅读时保持画面干净。',
     description:
       '封面更像一张冷静的角色视觉板，人物、机械和城市光源都可以自然接入。',
     synopsis:
@@ -166,11 +178,14 @@ const works = [
     tags: ['AMV', 'Beat Sync', 'Scan Line'],
     palette: ['#e6c84f', '#5fcf7b', '#62bde8', '#10130f'],
     accentColor: '#e6c84f',
-    transitionMood: '扫描跳变',
+    transitionMood: 'scan',
     coverImage: '',
     posterSrc: '',
     videoSrc: '',
     logline: '把舞台、街区和节拍切成一组明亮但克制的频谱格。',
+    shortDescription: '把舞台、街区和节拍切成一组明亮但克制的频谱格。',
+    infoDescription:
+      '这一组以节拍为核心，但详情页不做全程闪烁，只让节点转场服务音乐结构。',
     description:
       '更适合音乐感强的群像混剪，封面以格线和色块暗示节拍结构。',
     synopsis:
@@ -198,11 +213,14 @@ const works = [
     tags: ['AMV', 'Soft Orbit', 'Memory'],
     palette: ['#a98de8', '#f08aa0', '#f5efe8', '#10071a'],
     accentColor: '#f08aa0',
-    transitionMood: '弧形遮罩',
+    transitionMood: 'soft',
     coverImage: '',
     posterSrc: '',
     videoSrc: '',
     logline: '用环形遮罩和浅色光晕把回忆、告白和擦肩剪成一条轨道。',
+    shortDescription: '用环形遮罩和浅色光晕把回忆、告白和擦肩剪成一条轨道。',
+    infoDescription:
+      '这一页适合青春、恋爱或回忆向混剪，让柔边遮罩和慢速视差建立记忆感。',
     description:
       '人物插画可以放在画面中心，周围用弧形光带表达记忆环绕。',
     synopsis:
@@ -242,21 +260,34 @@ const els = {
   hoverLabel: document.querySelector('#hoverLabel'),
   focusEnterHint: document.querySelector('#focusEnterHint'),
   detailPage: document.querySelector('#detailPage'),
-  detailBackdrop: document.querySelector('#detailBackdrop'),
+  workVisualStage: document.querySelector('#workVisualStage'),
+  workMediaCurrent: document.querySelector('#workMediaCurrent'),
+  workMediaNext: document.querySelector('#workMediaNext'),
+  workVisualMask: document.querySelector('#workVisualMask'),
   detailBack: document.querySelector('#detailBack'),
   detailSound: document.querySelector('#detailSound'),
+  workCopy: document.querySelector('#workCopy'),
   detailKicker: document.querySelector('#detailKicker'),
+  detailCategory: document.querySelector('#detailCategory'),
   detailTitle: document.querySelector('#detailTitle'),
   detailLogline: document.querySelector('#detailLogline'),
   detailPlay: document.querySelector('#detailPlay'),
-  detailSynopsis: document.querySelector('#detailSynopsis'),
+  detailInfoToggle: document.querySelector('#detailInfoToggle'),
+  detailInfoClose: document.querySelector('#detailInfoClose'),
+  detailPlayerClose: document.querySelector('#detailPlayerClose'),
+  workInfo: document.querySelector('#workInfo'),
+  workPlayer: document.querySelector('#workPlayer'),
+  detailInfoIndex: document.querySelector('#detailInfoIndex'),
+  detailInfoTitle: document.querySelector('#detailInfoTitle'),
+  detailInfoDescription: document.querySelector('#detailInfoDescription'),
   detailFrameStrip: document.querySelector('#detailFrameStrip'),
   detailDirection: document.querySelector('#detailDirection'),
-  detailCredits: document.querySelector('#detailCredits'),
-  detailNextCard: document.querySelector('#detailNextCard'),
   detailPrev: document.querySelector('#detailPrev'),
+  detailPrevTitle: document.querySelector('#detailPrevTitle'),
   detailNext: document.querySelector('#detailNext'),
+  detailNextTitle: document.querySelector('#detailNextTitle'),
   detailCount: document.querySelector('#detailCount'),
+  detailPlayerStatus: document.querySelector('#detailPlayerStatus'),
 };
 
 class GalleryExperience {
@@ -281,6 +312,8 @@ class GalleryExperience {
     this.detailIndex = null;
     this.detailTransitioning = false;
     this.detailTimeline = null;
+    this.isPlayerOpen = false;
+    this.isInfoOpen = false;
 
     // 镜头相关的 Vector3 会在每一帧复用，减少动画循环中的临时对象创建。
     this.cameraTarget = new THREE.Vector3(0, 1.7, 0);
@@ -666,7 +699,7 @@ class GalleryExperience {
     window.addEventListener('resize', () => this.resize());
     window.addEventListener('pointermove', (event) => this.onPointerMove(event));
     window.addEventListener('pointerleave', () => this.clearHover());
-    window.addEventListener('wheel', () => this.cancelJumpRoute(), { passive: true });
+    window.addEventListener('wheel', (event) => this.onWheel(event), { passive: false });
     window.addEventListener('touchstart', () => this.cancelJumpRoute(), { passive: true });
     window.addEventListener('click', (event) => {
       if (this.isDetailOpen) {
@@ -705,18 +738,14 @@ class GalleryExperience {
     els.detailSound.addEventListener('click', () => this.toggleSound());
     els.detailPrev.addEventListener('click', () => this.goToAdjacentDetail(-1));
     els.detailNext.addEventListener('click', () => this.goToAdjacentDetail(1));
-    els.detailNextCard.addEventListener('click', () => this.goToAdjacentDetail(1));
     els.detailBack.addEventListener('click', (event) => {
       event.preventDefault();
       window.location.hash = '#/';
     });
-    els.detailPlay.addEventListener('click', () => {
-      els.detailPlay.classList.toggle('is-playing');
-      els.detailPlay.querySelector('span').textContent = els.detailPlay.classList.contains('is-playing')
-        ? 'PAUSE'
-        : 'PLAY';
-      this.playPulse(220, 0.09);
-    });
+    els.detailPlay.addEventListener('click', () => this.openPlayer());
+    els.detailPlayerClose.addEventListener('click', () => this.closePlayer());
+    els.detailInfoToggle.addEventListener('click', () => this.toggleInfo());
+    els.detailInfoClose.addEventListener('click', () => this.toggleInfo(false));
     document.querySelector('a[href="#gallery"]')?.addEventListener('click', (event) => {
       event.preventDefault();
       this.routeToProgress(0);
@@ -725,6 +754,16 @@ class GalleryExperience {
     window.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
         if (this.isDetailOpen) {
+          if (this.isPlayerOpen) {
+            this.closePlayer();
+            return;
+          }
+
+          if (this.isInfoOpen) {
+            this.toggleInfo(false);
+            return;
+          }
+
           window.location.hash = '#/';
           return;
         }
@@ -736,15 +775,35 @@ class GalleryExperience {
       }
 
       if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+        event.preventDefault();
         this.goToAdjacentDetail(-1);
       }
 
       if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+        event.preventDefault();
         this.goToAdjacentDetail(1);
       }
     });
 
     window.addEventListener('hashchange', () => this.handleRoute());
+  }
+
+  onWheel(event) {
+    if (!this.isDetailOpen) {
+      this.cancelJumpRoute();
+      return;
+    }
+
+    if (this.isPlayerOpen || this.isInfoOpen) {
+      return;
+    }
+
+    event.preventDefault();
+    if (this.detailTransitioning || Math.abs(event.deltaY) < 18) {
+      return;
+    }
+
+    this.goToAdjacentDetail(event.deltaY > 0 ? 1 : -1);
   }
 
   setupScroll() {
@@ -773,7 +832,17 @@ class GalleryExperience {
         window.location.hash = '#/';
         return;
       }
-      this.showDetail(index);
+      if (this.isDetailOpen && this.detailIndex === index) {
+        return;
+      }
+
+      if (this.isDetailOpen) {
+        const source = this.detailIndex ?? this.activeIndex;
+        const direction = index >= source ? 1 : -1;
+        this.transitionWorkDetail(index, direction);
+      } else {
+        this.showDetail(index);
+      }
       return;
     }
 
@@ -796,23 +865,24 @@ class GalleryExperience {
 
   showDetail(index) {
     const targetIndex = THREE.MathUtils.clamp(index, 0, LAST_WORK_INDEX);
-    const wasOpen = this.isDetailOpen;
     this.detailIndex = targetIndex;
     this.isDetailOpen = true;
-    this.detailTransitioning = false;
+    this.detailTransitioning = true;
+    this.isPlayerOpen = false;
+    this.isInfoOpen = false;
     this.cancelJumpRoute();
     this.clearFocus();
     this.scrollToProgress(targetIndex / Math.max(LAST_WORK_INDEX, 1), 'auto');
-    this.renderDetail(targetIndex);
+    this.renderWorkDetail(targetIndex, els.workMediaCurrent);
 
     els.detailPage.setAttribute('aria-hidden', 'false');
+    els.workInfo.setAttribute('aria-hidden', 'true');
+    els.workPlayer.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('is-entering-detail');
     document.body.classList.add('is-detail');
+    document.body.classList.remove('is-detail-playing', 'is-detail-info');
 
-    if (!wasOpen) {
-      els.detailPage.scrollTop = 0;
-    }
-    this.animateDetailIn(wasOpen);
+    this.animateDetailIntro();
   }
 
   hideDetail() {
@@ -823,9 +893,13 @@ class GalleryExperience {
     this.isDetailOpen = false;
     this.detailIndex = null;
     this.detailTransitioning = false;
+    this.isPlayerOpen = false;
+    this.isInfoOpen = false;
     this.detailTimeline?.kill();
     els.detailPage.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('is-detail', 'is-entering-detail');
+    els.workInfo.setAttribute('aria-hidden', 'true');
+    els.workPlayer.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('is-detail', 'is-entering-detail', 'is-detail-playing', 'is-detail-info');
     els.detailPlay.classList.remove('is-playing');
     els.detailPlay.querySelector('span').textContent = 'PLAY';
     ScrollTrigger.refresh();
@@ -839,61 +913,45 @@ class GalleryExperience {
     const source = this.detailIndex ?? this.activeIndex;
     const nextIndex = (source + direction + WORK_COUNT) % WORK_COUNT;
     const nextWork = works[nextIndex];
-    this.detailTransitioning = true;
     this.playPulse(direction > 0 ? 180 : 130, 0.08);
     window.location.hash = `${DETAIL_ROUTE_PREFIX}${encodeURIComponent(nextWork.id)}`;
   }
 
   renderDetail(index) {
+    this.renderWorkDetail(index, els.workMediaCurrent);
+  }
+
+  renderWorkDetail(index, mediaLayer = els.workMediaCurrent) {
     const work = works[index];
     if (!work) {
       return;
     }
 
+    const prevWork = works[(index - 1 + WORK_COUNT) % WORK_COUNT];
     const nextWork = works[(index + 1) % WORK_COUNT];
     els.detailPage.style.setProperty('--detail-accent', work.accentColor);
     els.detailPage.style.setProperty('--detail-accent-soft', `${work.accentColor}33`);
     els.detailPage.style.setProperty('--detail-dark', work.palette[3]);
-    els.detailKicker.textContent = `FF-${work.index} / ${work.category} / ${work.duration}`;
+    els.detailKicker.textContent = `#${work.index.padStart(3, '0')}`;
+    els.detailCategory.textContent = `${work.meta} / ${work.duration}`;
     els.detailTitle.textContent = work.title;
-    els.detailLogline.textContent = work.logline;
-    els.detailSynopsis.textContent = work.synopsis;
+    els.detailLogline.textContent = work.shortDescription || work.logline;
+    els.detailInfoIndex.textContent = `#${work.index.padStart(3, '0')} / INFO`;
+    els.detailInfoTitle.textContent = `${work.title} / Mix Notes`;
+    els.detailInfoDescription.textContent = work.infoDescription || work.synopsis;
     els.detailDirection.textContent = work.mixDirection;
-    els.detailCount.textContent = `${work.index} / ${String(WORK_COUNT).padStart(2, '0')}`;
-    els.detailPrev.textContent = `Prev`;
-    els.detailNext.textContent = `Next`;
+    els.detailCount.textContent = `${work.index.padStart(3, '0')} / ${String(WORK_COUNT).padStart(3, '0')}`;
+    els.detailPrevTitle.textContent = prevWork.title;
+    els.detailNextTitle.textContent = nextWork.title;
+    els.detailPlayerStatus.textContent = `${work.title} / preview`;
 
-    els.detailBackdrop.innerHTML = '';
-    if (work.videoSrc) {
-      const video = document.createElement('video');
-      video.className = 'detail-video';
-      video.src = work.videoSrc;
-      video.poster = work.posterSrc || work.coverImage;
-      video.muted = true;
-      video.loop = true;
-      video.playsInline = true;
-      video.autoplay = true;
-      els.detailBackdrop.appendChild(video);
-    } else if (work.posterSrc || work.coverImage) {
-      const image = document.createElement('img');
-      image.className = 'detail-poster';
-      image.src = work.posterSrc || work.coverImage;
-      image.alt = `${work.title} cover`;
-      els.detailBackdrop.appendChild(image);
-    }
-    els.detailBackdrop.style.setProperty('--poster-a', work.palette[0]);
-    els.detailBackdrop.style.setProperty('--poster-b', work.palette[1]);
-    els.detailBackdrop.style.setProperty('--poster-c', work.palette[2]);
-    els.detailBackdrop.style.setProperty('--poster-d', work.palette[3]);
-    els.detailBackdrop.dataset.mood = work.transitionMood;
+    this.renderMediaLayer(mediaLayer, work);
+    els.detailPage.dataset.mood = work.transitionMood;
 
     els.detailFrameStrip.innerHTML = work.frameNotes
       .map(
-        ([time, label, note], noteIndex) => `
-          <article class="frame-note" style="--frame-delay: ${noteIndex * 0.05}s">
-            <div class="frame-thumb" aria-hidden="true">
-              <span>${time}</span>
-            </div>
+        ([time, label, note]) => `
+          <article class="work-frame-note">
             <p>${time}</p>
             <h4>${label}</h4>
             <span>${note}</span>
@@ -901,66 +959,183 @@ class GalleryExperience {
         `,
       )
       .join('');
-
-    els.detailCredits.innerHTML = work.credits
-      .map(([term, value]) => `<div><dt>${term}</dt><dd>${value}</dd></div>`)
-      .join('');
-
-    els.detailNextCard.innerHTML = `
-      <span>Next Mix</span>
-      <strong>${nextWork.index} ${nextWork.title}</strong>
-      <small>${nextWork.meta}</small>
-    `;
   }
 
-  animateDetailIn(wasOpen) {
+  renderMediaLayer(layer, work) {
+    layer.innerHTML = '';
+    layer.style.setProperty('--poster-a', work.palette[0]);
+    layer.style.setProperty('--poster-b', work.palette[1]);
+    layer.style.setProperty('--poster-c', work.palette[2]);
+    layer.style.setProperty('--poster-d', work.palette[3]);
+    layer.style.setProperty('--detail-accent', work.accentColor);
+    layer.dataset.mood = work.transitionMood;
+
+    if (work.videoSrc) {
+      const video = document.createElement('video');
+      video.className = 'work-media';
+      video.src = work.videoSrc;
+      video.poster = work.posterSrc || work.coverImage;
+      video.muted = !this.soundEnabled;
+      video.loop = true;
+      video.playsInline = true;
+      video.autoplay = true;
+      layer.appendChild(video);
+      video.play?.().catch(() => {});
+      return;
+    }
+
+    if (work.posterSrc || work.coverImage) {
+      const image = document.createElement('img');
+      image.className = 'work-media';
+      image.src = work.posterSrc || work.coverImage;
+      image.alt = `${work.title} cover`;
+      layer.appendChild(image);
+      return;
+    }
+
+    const fallback = document.createElement('div');
+    fallback.className = 'work-media-fallback';
+    fallback.innerHTML = `
+      <span>${work.index}</span>
+      <strong>${work.title}</strong>
+      <small>${work.meta}</small>
+    `;
+    layer.appendChild(fallback);
+  }
+
+  animateDetailIntro() {
     this.detailTimeline?.kill();
-    const sections = els.detailPage.querySelectorAll('.detail-section');
-    const hud = els.detailPage.querySelectorAll('.detail-hud');
-    const frameNotes = els.detailPage.querySelectorAll('.frame-note');
-    const duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.01 : 0.72;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const duration = reduce ? 0.01 : 1.05;
 
     this.detailTimeline = gsap.timeline({
       defaults: {
-        ease: 'power3.out',
+        ease: 'power3.inOut',
       },
       onComplete: () => {
         this.detailTransitioning = false;
       },
     });
 
-    if (!wasOpen) {
-      this.detailTimeline.fromTo(
-        els.detailBackdrop,
-        { opacity: 0, scale: 1.04, filter: 'blur(10px)' },
-        { opacity: 1, scale: 1, filter: 'blur(0px)', duration },
-      );
-    } else {
-      this.detailTimeline.fromTo(
-        els.detailBackdrop,
-        { opacity: 0.58, scale: 1.025, filter: 'blur(7px)' },
-        { opacity: 1, scale: 1, filter: 'blur(0px)', duration: duration * 0.82 },
-      );
+    this.detailTimeline.fromTo(
+      els.workMediaCurrent,
+      { autoAlpha: 0, scale: 1.08, filter: 'blur(12px)' },
+      { autoAlpha: 1, scale: 1, filter: 'blur(0px)', duration },
+    );
+    this.detailTimeline.fromTo(
+      els.workCopy.children,
+      { autoAlpha: 0, y: 26 },
+      { autoAlpha: 1, y: 0, duration: 0.58, stagger: 0.08, ease: 'power3.out' },
+      '-=0.45',
+    );
+    this.detailTimeline.fromTo(
+      els.detailPage.querySelectorAll('.work-hud, .work-navi'),
+      { autoAlpha: 0 },
+      { autoAlpha: 1, duration: 0.36, stagger: 0.05 },
+      '-=0.36',
+    );
+  }
+
+  transitionWorkDetail(nextIndex, direction = 1) {
+    if (!this.isDetailOpen || this.detailTransitioning) {
+      return;
     }
 
-    this.detailTimeline.fromTo(
-      sections,
-      { opacity: 0, y: 22 },
-      { opacity: 1, y: 0, duration: 0.46, stagger: 0.055 },
-      '-=0.34',
-    );
-    this.detailTimeline.fromTo(
-      hud,
-      { opacity: 0 },
-      { opacity: 1, duration: 0.28, stagger: 0.04 },
-      '-=0.26',
-    );
-    this.detailTimeline.fromTo(
-      frameNotes,
-      { opacity: 0, y: 18 },
-      { opacity: 1, y: 0, duration: 0.36, stagger: 0.045 },
-      '-=0.2',
-    );
+    const targetIndex = THREE.MathUtils.clamp(nextIndex, 0, LAST_WORK_INDEX);
+    if (targetIndex === this.detailIndex) {
+      return;
+    }
+
+    this.detailTransitioning = true;
+    this.closePlayer();
+    this.toggleInfo(false);
+    this.detailTimeline?.kill();
+    this.renderWorkDetail(targetIndex, els.workMediaNext);
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const duration = reduce ? 0.01 : 0.9;
+    const xOffset = direction > 0 ? 46 : -46;
+
+    gsap.set(els.workMediaNext, { autoAlpha: 1, scale: 1.045, x: xOffset, filter: 'blur(6px)' });
+    gsap.set(els.workVisualMask, { autoAlpha: 0.62, xPercent: direction > 0 ? -115 : 115 });
+
+    this.detailTimeline = gsap.timeline({
+      defaults: { ease: 'power3.inOut' },
+      onComplete: () => {
+        const oldCurrent = els.workMediaCurrent;
+        const oldNext = els.workMediaNext;
+        oldCurrent.innerHTML = oldNext.innerHTML;
+        oldCurrent.style.cssText = oldNext.style.cssText;
+        oldCurrent.dataset.mood = oldNext.dataset.mood;
+        oldCurrent.classList.add('is-active');
+        oldNext.innerHTML = '';
+        oldNext.removeAttribute('style');
+        oldNext.classList.remove('is-active');
+        gsap.set(oldCurrent, { clearProps: 'opacity,visibility,transform,filter' });
+        gsap.set(oldNext, { clearProps: 'opacity,visibility,transform,filter' });
+        gsap.set(els.workVisualMask, { clearProps: 'opacity,visibility,transform' });
+        this.detailIndex = targetIndex;
+        this.detailTransitioning = false;
+      },
+    });
+
+    this.detailTimeline
+      .to(els.workMediaCurrent, { autoAlpha: 0, scale: 0.985, x: -xOffset * 0.45, duration }, 0)
+      .to(els.workMediaNext, { scale: 1, x: 0, filter: 'blur(0px)', duration }, 0)
+      .to(els.workVisualMask, { xPercent: direction > 0 ? 115 : -115, duration: duration * 0.82 }, 0.04)
+      .fromTo(
+        els.workCopy.children,
+        { autoAlpha: 0, y: 20 },
+        { autoAlpha: 1, y: 0, duration: 0.45, stagger: 0.055, ease: 'power3.out' },
+        duration * 0.42,
+      );
+  }
+
+  openPlayer() {
+    if (!this.isDetailOpen || this.detailTransitioning) {
+      return;
+    }
+
+    this.isPlayerOpen = true;
+    this.toggleInfo(false);
+    els.workPlayer.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('is-detail-playing');
+    els.detailPlay.classList.add('is-playing');
+    els.detailPlay.querySelector('span').textContent = 'PLAYING';
+    this.syncDetailMediaSound();
+    this.playPulse(220, 0.09);
+  }
+
+  closePlayer() {
+    if (!this.isPlayerOpen && !document.body.classList.contains('is-detail-playing')) {
+      return;
+    }
+
+    this.isPlayerOpen = false;
+    els.workPlayer.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('is-detail-playing');
+    els.detailPlay.classList.remove('is-playing');
+    els.detailPlay.querySelector('span').textContent = 'PLAY';
+  }
+
+  toggleInfo(force) {
+    if (!this.isDetailOpen) {
+      return;
+    }
+
+    const nextState = typeof force === 'boolean' ? force : !this.isInfoOpen;
+    this.isInfoOpen = nextState;
+    if (nextState) {
+      this.closePlayer();
+    }
+    els.workInfo.setAttribute('aria-hidden', nextState ? 'false' : 'true');
+    document.body.classList.toggle('is-detail-info', nextState);
+  }
+
+  syncDetailMediaSound() {
+    els.detailPage.querySelectorAll('video').forEach((video) => {
+      video.muted = !this.soundEnabled;
+    });
   }
 
   routeToProgress(progress) {
@@ -1152,6 +1327,7 @@ class GalleryExperience {
       : '<i data-lucide="volume-x"></i>';
     createIcons({ icons: { Volume2, VolumeX } });
     els.detailSound.textContent = this.soundEnabled ? 'Sound on' : 'Sound off';
+    this.syncDetailMediaSound();
 
     if (this.soundEnabled && !this.audio) {
       const AudioContext = window.AudioContext || window.webkitAudioContext;

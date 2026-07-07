@@ -68,18 +68,41 @@ async function verifyViewport({ name, width, height, clickCover, focusButton }) 
     const focusedPoint = await getActiveCoverCenter(page);
     await page.mouse.click(focusedPoint.x, focusedPoint.y);
     await page.waitForFunction(() => document.body.classList.contains('is-detail'));
+    await page.waitForFunction(() => !window.galleryExperience.detailTransitioning);
     await assertDetailOpen(page, 0);
     await page.screenshot({
       path: join(outputDir, 'detail-open.png'),
       fullPage: false,
     });
+    await page.locator('#detailPlay').click();
+    await page.waitForFunction(() => document.body.classList.contains('is-detail-playing'));
+    await page.waitForTimeout(340);
+    await assertPlayerOpen(page);
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.body.classList.contains('is-detail-playing'));
+    await page.locator('#detailInfoToggle').click();
+    await page.waitForFunction(() => document.body.classList.contains('is-detail-info'));
+    await assertInfoOpen(page);
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.body.classList.contains('is-detail-info'));
     await page.locator('#detailNext').click();
     await page.waitForFunction(() => window.location.hash.includes('/works/tide'));
+    await page.waitForFunction(
+      () => window.galleryExperience.detailIndex === 1 && !window.galleryExperience.detailTransitioning,
+    );
     await assertDetailOpen(page, 1);
     await page.screenshot({
       path: join(outputDir, 'detail-next.png'),
       fullPage: false,
     });
+    for (let step = 0; step < 4; step += 1) {
+      await page.locator('#detailNext').click();
+      await page.waitForFunction(
+        (expected) => window.galleryExperience.detailIndex === expected && !window.galleryExperience.detailTransitioning,
+        (step + 2) % EXPECTED_COVER_COUNT,
+      );
+      await assertDetailOpen(page, (step + 2) % EXPECTED_COVER_COUNT);
+    }
     await page.keyboard.press('Escape');
     await page.waitForFunction(
       () => !document.body.classList.contains('is-focused') && window.galleryExperience.focusBlend < 0.12,
@@ -103,6 +126,18 @@ async function verifyViewport({ name, width, height, clickCover, focusButton }) 
       path: join(outputDir, 'mobile-focus.png'),
       fullPage: false,
     });
+    await page.evaluate(() => {
+      window.location.hash = '#/works/afterglow';
+    });
+    await page.waitForFunction(() => document.body.classList.contains('is-detail'));
+    await page.waitForFunction(() => !window.galleryExperience.detailTransitioning);
+    await assertDetailOpen(page, 0);
+    await page.screenshot({
+      path: join(outputDir, 'mobile-detail.png'),
+      fullPage: false,
+    });
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.body.classList.contains('is-detail'));
   }
 
   await page.close();
@@ -155,7 +190,10 @@ async function assertDetailOpen(page, expectedIndex) {
     isDetail: document.body.classList.contains('is-detail'),
     title: document.querySelector('#detailTitle')?.textContent,
     count: document.querySelector('#detailCount')?.textContent,
-    frameCount: document.querySelectorAll('.frame-note').length,
+    frameCount: document.querySelectorAll('.work-frame-note').length,
+    mediaLayerCount: document.querySelectorAll('.work-media-layer').length,
+    fallbackCount: document.querySelectorAll('.work-media-fallback, .work-media').length,
+    sectionCount: document.querySelectorAll('.detail-section').length,
     hash: window.location.hash,
     hidden: document.querySelector('#detailPage')?.getAttribute('aria-hidden'),
   }));
@@ -164,9 +202,38 @@ async function assertDetailOpen(page, expectedIndex) {
     throw new Error(`detail page did not open: ${JSON.stringify(state)}`);
   }
 
-  const expectedCount = `${String(expectedIndex + 1).padStart(2, '0')} / 06`;
-  if (!state.count.includes(expectedCount) || state.frameCount < 3) {
+  const expectedCount = `${String(expectedIndex + 1).padStart(3, '0')} / 006`;
+  if (
+    !state.count.includes(expectedCount) ||
+    state.frameCount < 3 ||
+    state.mediaLayerCount !== 2 ||
+    state.fallbackCount < 1 ||
+    state.sectionCount !== 0
+  ) {
     throw new Error(`detail content mismatch: ${JSON.stringify(state)}`);
+  }
+}
+
+async function assertPlayerOpen(page) {
+  const state = await page.evaluate(() => ({
+    playerHidden: document.querySelector('#workPlayer')?.getAttribute('aria-hidden'),
+    copyOpacity: getComputedStyle(document.querySelector('#workCopy')).opacity,
+  }));
+
+  if (state.playerHidden !== 'false' || Number(state.copyOpacity) > 0.08) {
+    throw new Error(`player layer did not hide copy: ${JSON.stringify(state)}`);
+  }
+}
+
+async function assertInfoOpen(page) {
+  const state = await page.evaluate(() => ({
+    infoHidden: document.querySelector('#workInfo')?.getAttribute('aria-hidden'),
+    notes: document.querySelectorAll('.work-frame-note').length,
+    title: document.querySelector('#detailInfoTitle')?.textContent,
+  }));
+
+  if (state.infoHidden !== 'false' || state.notes < 3 || !state.title) {
+    throw new Error(`info layer did not open: ${JSON.stringify(state)}`);
   }
 }
 
