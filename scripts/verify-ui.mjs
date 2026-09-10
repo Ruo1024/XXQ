@@ -1045,7 +1045,8 @@ async function verifyWorkDetail(target) {
   await target.locator('[data-detail-play]').click();
   await target.locator('.work-detail[data-detail-state="playing"]').waitFor({ state: 'visible' });
   assert((await target.locator('[data-detail-info-panel]').getAttribute('aria-hidden')) === 'true', 'PLAY 打开时 INFO 没有关闭。');
-  assert(await target.locator('[data-player-asset]').isVisible(), '播放器没有显示素材状态。');
+  await target.locator('.work-player-wipe').waitFor({ state: 'hidden' });
+  assert(await target.locator('[data-detail-player-close]').isVisible(), '播放器没有显示 BACK。');
   const playerVideo = target.locator('[data-detail-player-video]');
   await target.waitForFunction(() => {
     const video = document.querySelector('[data-detail-player-video]');
@@ -1495,6 +1496,7 @@ async function waitForDetailIdle(target) {
     const velocity = Number(raw.velocity ?? detail.dataset.scrollVelocity);
     const isSettled = raw.isSettled ?? detail.dataset.isSettled === 'true';
     return detailState === 'idle'
+      && document.querySelector('.work-player-wipe')?.hidden !== false
       && (scrollState === 'idle' || isSettled === true)
       && isSettled === true
       && Number.isFinite(velocity)
@@ -1586,24 +1588,29 @@ async function assertBackgroundPlaylistAdvances(target, expectedWork) {
 async function assertPlayerPlayback(target, expectedWork) {
   await target.locator('[data-detail-play]').click();
   await target.locator('.work-detail[data-detail-state="playing"]').waitFor({ state: 'visible' });
-  assert(await target.locator('[data-player-asset]').isVisible(), `作品 ${expectedWork.id} 播放器没有显示素材状态。`);
-  assert(
-    (await target.locator('[data-player-asset]').textContent())?.includes('PLACEHOLDER MEDIA'),
-    `作品 ${expectedWork.id} 播放器没有标明 PLACEHOLDER MEDIA。`,
-  );
-  await target.waitForFunction((expectedPaths) => {
+  await target.locator('.work-player-wipe').waitFor({ state: 'hidden' });
+  await target.waitForFunction(() => {
     const video = document.querySelector('[data-detail-player-video]');
     if (!video) return false;
     const pathname = new URL(video.currentSrc || video.src, window.location.href).pathname;
     return video.readyState >= 2
       && !video.paused
-      && expectedPaths.some((expectedPath) => pathname.endsWith(expectedPath));
-  }, expectedWork.videos, { timeout: 6000 });
+      && pathname.endsWith('/playback.mp4')
+      && video.duration > 60;
+  }, undefined, { timeout: 15000 });
   const playerState = await target.locator('[data-detail-player-video]').evaluate((video) => ({
-    index: Number(video.dataset.playlistIndex),
-    length: Number(video.dataset.playlistLength),
+    src: video.currentSrc,
+    loop: video.loop,
+    controls: video.controls,
+    width: video.getBoundingClientRect().width,
+    height: video.getBoundingClientRect().height,
+    viewportWidth: innerWidth,
+    viewportHeight: innerHeight,
   }));
-  assert(playerState.length === expectedWork.videos.length, `作品 ${expectedWork.id} 的 PLAY 没有完整片段列表。`);
+  assert(!playerState.loop && !playerState.controls, '完整视频不应循环或使用默认播放器控件。');
+  assert(playerState.width === playerState.viewportWidth && playerState.height === playerState.viewportHeight, '播放器没有铺满视口。');
+  assert(await target.locator('audio[data-flowframe-bgm]').evaluate((audio) => audio.paused), '完整视频与背景音乐同时播放。');
+  assert(await target.locator('[data-detail-player]').getAttribute('data-controls') === 'hidden', '进入后控件没有默认隐藏。');
   const startTime = await target.locator('[data-detail-player-video]').evaluate((video) => video.currentTime);
   await target.waitForFunction(
     (time) => document.querySelector('[data-detail-player-video]')?.currentTime > time + 0.2,
@@ -1611,15 +1618,25 @@ async function assertPlayerPlayback(target, expectedWork) {
     { timeout: 3000 },
   );
   await target.locator('[data-detail-player-video]').evaluate((video) => video.dispatchEvent(new Event('ended')));
-  await target.waitForFunction((previousIndex) => {
+  assert(await target.locator('[data-detail-player-video]').evaluate((video) => video.currentSrc) === playerState.src, '完整视频结束时错误切到碎片预览。');
+  await target.locator('[data-player-toggle]').click();
+  assert(await target.locator('[data-detail-player-video]').evaluate((video) => video.paused), '暂停按钮无效。');
+  await target.locator('[data-player-progress]').fill('50');
+  await target.waitForFunction(() => {
     const video = document.querySelector('[data-detail-player-video]');
-    return video
-      && Number(video.dataset.playlistIndex) !== previousIndex
-      && video.readyState >= 2
-      && !video.paused;
-  }, playerState.index, { timeout: 6000 });
-  await target.keyboard.press('Escape');
+    return Math.abs(video.currentTime / video.duration - 0.5) < 0.02;
+  });
+  await target.locator('[data-player-volume]').fill('0.3');
+  assert(await target.locator('[data-detail-player-video]').evaluate((video) => Math.abs(video.volume - 0.3) < 0.01), '音量滑条无效。');
+  await target.locator('[data-detail-player-close]').click();
   await waitForDetailIdle(target);
+  const returnedPlay = await target.locator('[data-detail-play]').evaluate((button) => ({
+    phase: button.dataset.inkPhase,
+    inkOpacity: Number(getComputedStyle(button.querySelector('.work-play__ink')).opacity),
+    animation: getComputedStyle(button).animationName,
+  }));
+  assert(returnedPlay.phase === 'idle' && returnedPlay.inkOpacity === 0 && returnedPlay.animation === 'none',
+    `BACK 后 PLAY 没有直接恢复白色：${JSON.stringify(returnedPlay)}`);
   assert(
     await target.locator('[data-detail-player-video]').evaluate((video) => video.paused),
     `作品 ${expectedWork.id} 播放器关闭后仍在播放。`,
@@ -1629,7 +1646,7 @@ async function assertPlayerPlayback(target, expectedWork) {
 async function assertDetailLayout(target, viewport) {
   const stage = await target.locator('.work-visual-stage').boundingBox();
   const copy = await target.locator('.work-copy').boundingBox();
-  const play = await target.locator('.work-play').boundingBox();
+  const play = await target.locator('[data-detail-play]').boundingBox();
   const navigation = await target.locator('.work-navi').boundingBox();
   assert(stage && stage.width >= viewport.width - 1 && stage.height >= viewport.height - 1, '详情媒体没有铺满视口。');
   assert(copy && copy.x >= 170 && copy.x + copy.width <= viewport.width - 170, '详情文案容器没有保持居中安全区。');

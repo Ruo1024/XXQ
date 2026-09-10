@@ -13,6 +13,7 @@ let trackError = false;
 let trackRevision = 0;
 let playbackAttempt = null;
 let playbackAttemptRevision = -1;
+const suspensions = new Set();
 
 const getState = () => {
   if (!activeTrack.src) return 'missing';
@@ -62,12 +63,13 @@ const ensureAudio = () => {
 };
 
 const playRequestedTrack = async (revision = trackRevision) => {
-  if (!requestedOn || !activeTrack.src) return getState();
+  if (!requestedOn || !activeTrack.src || suspensions.size) return getState();
   if (playbackAttempt && playbackAttemptRevision === revision) return playbackAttempt;
   const audio = ensureAudio();
   const attempt = (async () => {
     try {
       await audio.play();
+      if (suspensions.size || !requestedOn) audio.pause();
     } catch {
       if (revision === trackRevision) audio.pause();
     }
@@ -145,6 +147,15 @@ export const backgroundAudio = Object.freeze({
   setEnabled,
   setTrack,
   toggle: () => setEnabled(!requestedOn),
+  suspend(reason) {
+    suspensions.add(reason);
+    audioElement?.pause();
+  },
+  resume(reason) {
+    suspensions.delete(reason);
+    if (!suspensions.size) return playRequestedTrack(trackRevision);
+    return getState();
+  },
   subscribe(listener) {
     if (typeof listener !== 'function') return () => {};
     listeners.add(listener);

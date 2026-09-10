@@ -38,13 +38,6 @@ const normalizeOrders = (project) => {
   });
 };
 
-const syncPrimaryClip = (work) => {
-  const primary = work?.clips?.find((clip) => clip.src) || work?.clips?.[0];
-  if (!work) return;
-  work.videoSrc = primary?.src || '';
-  work.videoStatus = primary?.status || ASSET_STATUS.missing;
-};
-
 const makeWork = (index) => {
   const base = clone(DEFAULT_WORKS[index % DEFAULT_WORKS.length]);
   const sequence = index + 1;
@@ -166,6 +159,16 @@ const workMarkup = (work, workIndex, workCount, activeClipIndex = 0) => `
       <div class="ff-control__media-preview ff-control__media-preview--audio">${previewMarkup('audio', work.audioSrc, `${work.title} 音乐`)}</div>
       <label><span>路径或网址</span><input type="text" value="${escapeHtml(work.audioSrc)}" placeholder="/media/audio.m4a 或 https://…" data-field="audio-src" data-work="${workIndex}"></label>
       <label class="ff-control__file"><span>选择本地音频</span><input type="file" accept="audio/*" data-local-kind="audio" data-work="${workIndex}"></label>
+    </div>
+
+    <div class="ff-control__asset-block">
+      <div class="ff-control__asset-title"><strong>PLAY 完整视频</strong><button type="button" data-action="playback-clear" data-work="${workIndex}">删除</button></div>
+      <div class="ff-control__media-preview ff-control__media-preview--video">
+        ${previewMarkup('video', work.videoSrc, `${work.title} 完整视频`)}
+        <span>PLACEHOLDER MEDIA</span>
+      </div>
+      <label><span>路径或网址</span><input type="text" value="${escapeHtml(work.videoSrc)}" placeholder="/media/works/example/playback.mp4 或 https://…" data-field="playback-src" data-work="${workIndex}"></label>
+      <label class="ff-control__file"><span>选择本地完整视频</span><input type="file" accept="video/*" data-local-kind="playback" data-work="${workIndex}"></label>
     </div>
 
     <div class="ff-control__asset-block">
@@ -434,20 +437,19 @@ export const mountControlPanel = ({
     } else if (action === 'audio-clear' && work) {
       work.audioSrc = '';
       work.audioStatus = ASSET_STATUS.missing;
+    } else if (action === 'playback-clear' && work) {
+      work.videoSrc = '';
+      work.videoStatus = ASSET_STATUS.missing;
     } else if (action === 'clip-add' && work) {
       work.clips.push(makeClip(workIndex, work.clips.length));
       activeClipIndex = work.clips.length - 1;
-      syncPrimaryClip(work);
     } else if (action === 'clip-delete' && work?.clips?.[clipIndex]) {
       work.clips.splice(clipIndex, 1);
       activeClipIndex = Math.min(activeClipIndex, Math.max(0, work.clips.length - 1));
-      syncPrimaryClip(work);
     } else if (action === 'clip-up' && moveItem(work?.clips || [], clipIndex, -1)) {
       activeClipIndex = clipIndex - 1;
-      syncPrimaryClip(work);
     } else if (action === 'clip-down' && moveItem(work?.clips || [], clipIndex, 1)) {
       activeClipIndex = clipIndex + 1;
-      syncPrimaryClip(work);
     } else {
       return;
     }
@@ -489,11 +491,14 @@ export const mountControlPanel = ({
       work.audioSrc = event.target.value;
       work.audioStatus = event.target.value ? ASSET_STATUS.placeholder : ASSET_STATUS.missing;
     }
+    if (field === 'playback-src') {
+      work.videoSrc = event.target.value;
+      work.videoStatus = event.target.value ? ASSET_STATUS.placeholder : ASSET_STATUS.missing;
+    }
     if (field === 'clip-title' && work.clips[clipIndex]) work.clips[clipIndex].title = event.target.value;
     if (field === 'clip-src' && work.clips[clipIndex]) {
       work.clips[clipIndex].src = event.target.value;
       work.clips[clipIndex].status = event.target.value ? ASSET_STATUS.placeholder : ASSET_STATUS.missing;
-      syncPrimaryClip(work);
     }
     emitPreview();
   };
@@ -513,7 +518,7 @@ export const mountControlPanel = ({
     }
     const kind = event.target.dataset.localKind;
     if (!kind) {
-      if (['cover-src', 'audio-src', 'clip-src'].includes(event.target.dataset.field)) render();
+      if (['cover-src', 'audio-src', 'playback-src', 'clip-src'].includes(event.target.dataset.field)) render();
       return;
     }
     const file = event.target.files?.[0];
@@ -524,7 +529,7 @@ export const mountControlPanel = ({
     event.target.disabled = true;
     setStatus(`正在保存“${file.name}”…`);
     try {
-      const source = await assetStore.putFile(file, kind);
+      const source = await assetStore.putFile(file, kind === 'playback' ? 'video' : kind);
       if (kind === 'image') {
         work.poster = source;
         work.coverImage = source;
@@ -535,10 +540,12 @@ export const mountControlPanel = ({
       } else if (kind === 'audio') {
         work.audioSrc = source;
         work.audioStatus = ASSET_STATUS.placeholder;
+      } else if (kind === 'playback') {
+        work.videoSrc = source;
+        work.videoStatus = ASSET_STATUS.placeholder;
       } else if (work.clips[clipIndex]) {
         work.clips[clipIndex].src = source;
         work.clips[clipIndex].status = ASSET_STATUS.placeholder;
-        syncPrimaryClip(work);
       }
       emitPreview();
       setStatus(`“${file.name}”已保存为本地 PLACEHOLDER MEDIA。点击保存以写入项目配置。`, 'success');

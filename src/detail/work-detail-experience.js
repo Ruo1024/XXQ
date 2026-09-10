@@ -1,4 +1,5 @@
-import { resolveWorkMedia, sanitizeProject } from '../data/project-contract.js';
+import { resolveWorkMedia, resolveWorkPlayback, sanitizeProject } from '../data/project-contract.js';
+import { createWorkPlayer, playerMarkup } from './work-player.js';
 import { createDetailMotionController } from './detail-motion-controller.js';
 import { createDetailWebGLRenderer } from './detail-webgl-renderer.js';
 import './work-detail.css';
@@ -22,16 +23,6 @@ const assetLabel = (status) => {
   if (status === 'final') return '';
   if (status === 'missing') return 'MISSING MEDIA';
   return 'PLACEHOLDER MEDIA';
-};
-
-const clearVideo = (video) => {
-  video.pause();
-  video.loop = false;
-  video.removeAttribute('src');
-  video.removeAttribute('poster');
-  delete video.dataset.playlistIndex;
-  delete video.dataset.playlistLength;
-  video.load();
 };
 
 const getWheelPixels = (event, viewportHeight) => {
@@ -166,18 +157,7 @@ export function mountWorkDetail({
         </div>
       </aside>
 
-      <section class="work-player" aria-hidden="true" data-detail-player>
-        <button class="work-overlay-close work-player__close" type="button" data-detail-player-close aria-label="关闭播放器">CLOSE <i></i></button>
-        <div class="work-player__status">
-          <span data-player-number>MIX 001 / PLAYING</span>
-          <strong data-player-asset>PLACEHOLDER MEDIA</strong>
-        </div>
-        <video class="work-player__video" controls playsinline data-detail-player-video></video>
-        <div class="work-player__missing" data-player-missing hidden>
-          <strong>MEDIA REQUIRED</strong>
-          <span>这个作品还没有可播放的视频。</span>
-        </div>
-      </section>
+      ${playerMarkup}
     </section>
   `;
 
@@ -194,15 +174,10 @@ export function mountWorkDetail({
   const infoPanel = root.querySelector('[data-detail-info-panel]');
   const infoClose = root.querySelector('[data-detail-info-close]');
   const player = root.querySelector('[data-detail-player]');
-  const playerClose = root.querySelector('[data-detail-player-close]');
-  const playerVideo = root.querySelector('[data-detail-player-video]');
-  const playerMissing = root.querySelector('[data-player-missing]');
   const soundButton = root.querySelector('[data-detail-sound]');
   const playInk = root.querySelector('.work-play__ink');
   const inkDisplacement = root.querySelector('[data-play-ink-displacement]');
   const interactiveButtons = [prevButton, nextButton, playButton, infoButton];
-  let playerSources = [];
-  let playerSourceIndex = 0;
   let inkDelayTimer = 0;
   let inkResetTimer = 0;
   let inkPointerFrame = 0;
@@ -320,7 +295,9 @@ export function mountWorkDetail({
     retractInk();
   };
   const onPlayFocus = () => {
-    if (!inkPointerInside) beginInk({ x: 50, y: 50 });
+    if (!playButton.dataset.playerReturnFocus && !inkPointerInside && playButton.matches(':focus-visible')) {
+      beginInk({ x: 50, y: 50 });
+    }
   };
   const onPlayBlur = () => {
     if (!inkPointerInside) retractInk();
@@ -332,6 +309,24 @@ export function mountWorkDetail({
   };
   const onPlayInkTransitionEnd = (event) => {
     if (event.target === playInk && event.propertyName === 'transform') finalizeInkRetraction();
+  };
+  const resetPlayInk = () => {
+    window.clearTimeout(inkDelayTimer);
+    window.clearTimeout(inkResetTimer);
+    cancelAnimationFrame(inkPointerFrame);
+    inkDelayTimer = inkResetTimer = inkPointerFrame = 0;
+    inkPointerInside = false;
+    inkOrigin = inkTarget = { x: 50, y: 50 };
+    const buttonTransition = playButton.style.transition;
+    const inkTransition = playInk.style.transition;
+    playButton.style.transition = playInk.style.transition = 'none';
+    playInk.style.filter = 'none';
+    setInkPhase('idle');
+    // Flush the white resting state under the blackout. Returning must not
+    // interpolate a previous hover scale or replay the elastic retraction.
+    playButton.getBoundingClientRect();
+    playButton.style.transition = buttonTransition;
+    playInk.style.transition = inkTransition;
   };
 
   syncInkConfig();
@@ -708,28 +703,24 @@ export function mountWorkDetail({
   });
   window.__FLOWFRAME_DETAIL_DEBUG__ = debugApi;
 
-  const loadPlayerSource = (index, { play = true } = {}) => {
-    if (!playerSources.length) return false;
-    playerSourceIndex = wrap(index, playerSources.length);
-    playerVideo.src = playerSources[playerSourceIndex];
-    playerVideo.loop = playerSources.length === 1;
-    playerVideo.dataset.playlistIndex = String(playerSourceIndex);
-    playerVideo.dataset.playlistLength = String(playerSources.length);
-    const activeWork = works[motionController.getSnapshot().currentIndex];
-    root.querySelector('[data-player-number]').textContent = `MIX ${activeWork.number} / CLIP ${String(playerSourceIndex + 1).padStart(2, '0')} OF ${String(playerSources.length).padStart(2, '0')}`;
-    playerVideo.load();
-    if (play) {
-      playerVideo.play().catch(() => {
-        // Native controls remain available if autoplay is blocked.
-      });
-    }
-    return true;
-  };
-
-  const onPlayerEnded = () => {
-    if (detailState !== DETAIL_STATES.playing || playerSources.length <= 1) return;
-    loadPlayerSource(playerSourceIndex + 1);
-  };
+  const backgroundUi = [...experience.children].filter((element) =>
+    element !== player && !element.classList.contains('work-player-wipe'));
+  const fullPlayer = createWorkPlayer({
+    root, playButton, reducedMotion, audioController,
+    onEnter() {
+      resetPlayInk();
+      backgroundUi.forEach((element) => { element.inert = true; });
+      setDetailState(DETAIL_STATES.playing);
+      syncRendererPlayback();
+    },
+    onLeave() {
+      resetPlayInk();
+      backgroundUi.forEach((element) => { element.inert = false; });
+      motionController.resume('playing');
+      setDetailState(DETAIL_STATES.idle);
+      syncRendererPlayback();
+    },
+  });
 
   const closeInfo = () => {
     if (detailState !== DETAIL_STATES.info) return false;
@@ -742,7 +733,7 @@ export function mountWorkDetail({
 
   const openInfo = () => {
     const snapshot = motionController.getSnapshot();
-    if (detailState !== DETAIL_STATES.idle || !snapshot.isSettled) return false;
+    if (fullPlayer.isActive() || detailState !== DETAIL_STATES.idle || !snapshot.isSettled) return false;
     player.setAttribute('aria-hidden', 'true');
     infoPanel.setAttribute('aria-hidden', 'false');
     motionController.pause('info');
@@ -751,50 +742,21 @@ export function mountWorkDetail({
     return true;
   };
 
-  const closePlayer = () => {
-    if (detailState !== DETAIL_STATES.playing) return false;
-    clearVideo(playerVideo);
-    playerSources = [];
-    playerSourceIndex = 0;
-    playerVideo.hidden = false;
-    playerMissing.hidden = true;
-    player.setAttribute('aria-hidden', 'true');
-    motionController.resume('playing');
-    setDetailState(DETAIL_STATES.idle);
-    syncRendererPlayback();
-    return true;
-  };
+  const closePlayer = (options) => fullPlayer.close(options);
 
   const openPlayer = () => {
     const snapshot = motionController.getSnapshot();
-    if (detailState !== DETAIL_STATES.idle || !snapshot.isSettled) return false;
+    if (fullPlayer.isActive() || detailState !== DETAIL_STATES.idle || !snapshot.isSettled) return false;
     const work = works[snapshot.currentIndex];
-    const media = resolveWorkMedia(work);
+    const media = resolveWorkPlayback(work);
     infoPanel.setAttribute('aria-hidden', 'true');
-    player.setAttribute('aria-hidden', 'false');
-    root.querySelector('[data-player-asset]').textContent = assetLabel(media.status) || 'FINAL MEDIA';
     motionController.pause('playing');
-    setDetailState(DETAIL_STATES.playing);
-    syncRendererPlayback();
-
-    if (media.type === 'video' && media.src) {
-      playerMissing.hidden = true;
-      playerVideo.hidden = false;
-      playerSources = media.sources?.length ? [...media.sources] : [media.src];
-      const rendererIndex = Number(renderer.getStats?.().current?.sourceIndex || 0);
-      if (media.poster) playerVideo.poster = media.poster;
-      else playerVideo.removeAttribute('poster');
-      loadPlayerSource(rendererIndex);
-    } else {
-      clearVideo(playerVideo);
-      playerSources = [];
-      playerVideo.hidden = true;
-      playerMissing.hidden = false;
-    }
+    fullPlayer.open(media);
     return true;
   };
 
   const handleEscape = () => {
+    if (fullPlayer.isActive()) return closePlayer();
     if (detailState === DETAIL_STATES.playing) return closePlayer();
     if (detailState === DETAIL_STATES.info) return closeInfo();
     if (detailState === DETAIL_STATES.switching) {
@@ -813,7 +775,7 @@ export function mountWorkDetail({
   };
 
   const requestStep = (direction, source = 'button') => {
-    if (detailState !== DETAIL_STATES.idle) return false;
+    if (fullPlayer.isActive() || detailState !== DETAIL_STATES.idle) return false;
     return motionController.step(direction, { source });
   };
 
@@ -823,6 +785,7 @@ export function mountWorkDetail({
   const onWheel = (event) => {
     if (Math.abs(event.deltaY) < Math.abs(event.deltaX)) return;
     event.preventDefault();
+    if (fullPlayer.isActive()) return;
     if ([DETAIL_STATES.intro, DETAIL_STATES.info, DETAIL_STATES.playing].includes(detailState)) return;
     const delta = getWheelPixels(event, experience.clientHeight || window.innerHeight);
     const snapshot = motionController.getSnapshot();
@@ -883,8 +846,6 @@ export function mountWorkDetail({
   playInk.addEventListener('transitionend', onPlayInkTransitionEnd);
   infoButton.addEventListener('click', openInfo);
   infoClose.addEventListener('click', closeInfo);
-  playerClose.addEventListener('click', closePlayer);
-  playerVideo.addEventListener('ended', onPlayerEnded);
   soundButton.addEventListener('click', toggleSound);
   experience.addEventListener('wheel', onWheel, { passive: false });
   window.addEventListener('keydown', onKeyDown);
@@ -911,7 +872,7 @@ export function mountWorkDetail({
       window.clearTimeout(introTimer);
       introTimer = 0;
       if (detailState === DETAIL_STATES.info) closeInfo();
-      if (detailState === DETAIL_STATES.playing) closePlayer();
+      if (fullPlayer.isActive()) closePlayer({ immediate: true });
       if (detailState === DETAIL_STATES.intro) setDetailState(DETAIL_STATES.idle);
       pendingMediaImpulse = 0;
 
@@ -931,7 +892,7 @@ export function mountWorkDetail({
       const currentSnapshot = motionController.getSnapshot();
       const activeId = works[currentSnapshot.dominantIndex]?.id;
       if (detailState === DETAIL_STATES.info) closeInfo();
-      if (detailState === DETAIL_STATES.playing) closePlayer();
+      if (fullPlayer.isActive()) closePlayer({ immediate: true });
       activeProject = sanitizeProject(nextProject);
       works = activeProject.works;
       syncInkConfig();
@@ -982,14 +943,12 @@ export function mountWorkDetail({
       playInk.removeEventListener('transitionend', onPlayInkTransitionEnd);
       infoButton.removeEventListener('click', openInfo);
       infoClose.removeEventListener('click', closeInfo);
-      playerClose.removeEventListener('click', closePlayer);
-      playerVideo.removeEventListener('ended', onPlayerEnded);
       soundButton.removeEventListener('click', toggleSound);
       experience.removeEventListener('wheel', onWheel);
       window.removeEventListener('keydown', onKeyDown);
       document.removeEventListener('visibilitychange', onVisibilityChange);
       unsubscribeSound();
-      clearVideo(playerVideo);
+      fullPlayer.destroy();
       motionController.destroy();
       renderer.destroy();
       if (window.__FLOWFRAME_DETAIL_DEBUG__ === debugApi) {

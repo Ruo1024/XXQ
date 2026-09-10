@@ -82,13 +82,6 @@ const normalizeOrders = (project) => {
   });
 };
 
-const syncPrimaryMedia = (work) => {
-  const primaryClip = work?.clips?.find((clip) => clip.src) || work?.clips?.[0];
-  if (!work) return;
-  work.videoSrc = primaryClip?.src || '';
-  work.videoStatus = primaryClip?.status || ASSET_STATUS.missing;
-};
-
 export const mountStudio = ({
   root,
   project,
@@ -196,6 +189,10 @@ export const mountStudio = ({
           <span>英文标题</span>
           <input type="text" value="${escapeHtml(work.titleEn)}" data-field="work-title-en" data-work="${workIndex}">
         </label>
+        <label class="studio-field">
+          <span>PLAY 完整视频路径</span>
+          <input type="text" value="${escapeHtml(work.videoSrc)}" placeholder="/media/works/example/playback.mp4" data-field="work-video-src" data-work="${workIndex}">
+        </label>
       </div>
       <div class="studio-work__clips">
         ${work.clips.map((clip, clipIndex) => clipMarkup(clip, workIndex, clipIndex)).join('') || '<p class="studio-empty-row">这个作品还没有片段。</p>'}
@@ -268,7 +265,6 @@ export const mountStudio = ({
     const target = clipIndex + direction;
     if (!clips || target < 0 || target >= clips.length) return;
     [clips[clipIndex], clips[target]] = [clips[target], clips[clipIndex]];
-    syncPrimaryMedia(current.works[workIndex]);
     emit();
     render();
   };
@@ -333,7 +329,6 @@ export const mountStudio = ({
       const clips = current.works[workIndex]?.clips;
       if (!clips) return;
       clips.push(makeClip(workIndex, clips.length));
-      syncPrimaryMedia(current.works[workIndex]);
       emit();
       setNotice('已添加一个空片段。请填写正式路径，或选择本地文件临时预览。');
       render();
@@ -346,7 +341,6 @@ export const mountStudio = ({
       const preview = sessionPreviews.get(removed.id);
       if (preview) URL.revokeObjectURL(preview);
       sessionPreviews.delete(removed.id);
-      syncPrimaryMedia(current.works[workIndex]);
       emit();
       setNotice('片段已删除。');
       render();
@@ -373,13 +367,16 @@ export const mountStudio = ({
 
     if (field === 'work-title') work.title = event.target.value;
     if (field === 'work-title-en') work.titleEn = event.target.value;
+    if (field === 'work-video-src') {
+      work.videoSrc = event.target.value;
+      work.videoStatus = event.target.value ? ASSET_STATUS.placeholder : ASSET_STATUS.missing;
+    }
     if (field === 'clip-title' && work.clips[clipIndex]) work.clips[clipIndex].title = event.target.value;
     if (field === 'clip-src' && work.clips[clipIndex]) {
       work.clips[clipIndex].src = event.target.value;
       work.clips[clipIndex].status = event.target.value
         ? ASSET_STATUS.placeholder
         : ASSET_STATUS.missing;
-      syncPrimaryMedia(work);
     }
     emit();
   };

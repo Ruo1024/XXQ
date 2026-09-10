@@ -108,6 +108,14 @@ const migrateVersionFourMotion = (motion) => {
   return nextMotion;
 };
 
+const VERSION_FIVE_DEFAULT_PLAYBACK = Object.freeze({
+  afterglow: '/media/works/cigarette-and-her/segments/segment-01.mp4',
+  tide: '/media/works/eva/segments/segment-01.mp4',
+  ember: '/media/works/kaguya/segments/segment-01.mp4',
+  glass: '/media/works/liz-and-blue-bird/segments/segment-01.mp4',
+  signal: '/media/works/ave-mujica/segments/segment-01.mp4',
+});
+
 export const migrateProject = (input) => {
   if (!input || typeof input !== 'object') return input;
   const defaultProject = createDefaultProject();
@@ -140,6 +148,21 @@ export const migrateProject = (input) => {
   if (version < 5) {
     motion = migrateVersionFourMotion(motion);
     version = 5;
+  }
+
+  if (version < 6) {
+    const defaultsById = new Map(defaultProject.works.map((work) => [work.id, work]));
+    works = works.map((work) => {
+      const previousDefault = VERSION_FIVE_DEFAULT_PLAYBACK[work?.id];
+      if (!previousDefault || String(work?.videoSrc || '') !== previousDefault) return work;
+      const currentDefault = defaultsById.get(work.id);
+      return {
+        ...work,
+        videoSrc: currentDefault?.videoSrc || '',
+        videoStatus: currentDefault?.videoStatus || 'missing',
+      };
+    });
+    version = 6;
   }
 
   return {

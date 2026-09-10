@@ -11,8 +11,12 @@
     "dev": "vite --host 127.0.0.1",
     "build": "node scripts/clean-sites-build.mjs && vite build && node scripts/prepare-sites-build.mjs",
     "fetch:pages-media": "node scripts/fetch-pages-media.mjs",
+    "prepare:publish-media": "bash scripts/prepare-publish-media.sh",
+    "update:media-manifest": "node scripts/update-pages-media-manifest.mjs",
+    "evaluate:media-crf": "node scripts/evaluate-publish-crf.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "verify:media": "node scripts/verify-media.mjs",
+    "verify:playback": "node scripts/verify-playback.mjs && node scripts/verify-player-state.mjs",
     "verify:ui": "node scripts/verify-ui.mjs"
   },
   "dependencies": {

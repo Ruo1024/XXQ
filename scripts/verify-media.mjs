@@ -7,9 +7,21 @@ const errors = [];
 
 const THEMES = [
   {
+    slug: 'cigarette-and-her',
+    source: 'media/source/user-supplied/cigarette-and-her-original.mp4',
+    clipSize: [1280, 720],
+    segmentDurations: [6, 6, 7],
+    fps: 30,
+    detailSize: [1920, 1080],
+    detailCodec: 'mjpeg',
+    detailFilename: 'detail-poster.jpg',
+    audio: 'public/media/audio/cigarette-and-her-bgm.m4a',
+  },
+  {
     slug: 'eva',
     source: 'media/source/downloaded/eva/source.mp4',
     clipSize: [1920, 1080],
+    segmentDurations: [6, 6, 6],
     fps: 24,
     detailSize: [1920, 1080],
     audio: 'public/media/audio/eva-bgm.m4a',
@@ -18,6 +30,7 @@ const THEMES = [
     slug: 'kaguya',
     source: 'media/source/downloaded/kaguya/source.mp4',
     clipSize: [1920, 764],
+    segmentDurations: [6, 6, 6],
     fps: 60,
     detailSize: [1920, 764],
     audio: 'public/media/audio/kaguya-bgm.m4a',
@@ -26,6 +39,7 @@ const THEMES = [
     slug: 'liz-and-blue-bird',
     source: 'media/source/downloaded/liz-and-blue-bird/source.mp4',
     clipSize: [1920, 764],
+    segmentDurations: [6, 6, 6],
     fps: 60,
     detailSize: [1920, 764],
     audio: 'public/media/audio/liz-and-blue-bird-bgm.m4a',
@@ -34,16 +48,14 @@ const THEMES = [
     slug: 'ave-mujica',
     source: 'media/source/downloaded/ave-mujica/source.mp4',
     clipSize: [1920, 800],
+    segmentDurations: [6, 6, 6],
     fps: 60,
     detailSize: [1920, 800],
     audio: 'public/media/audio/ave-mujica-bgm.m4a',
   },
 ];
 
-const HOME_POSTERS = [
-  'public/media/works/cigarette-and-her/home-poster.webp',
-  ...THEMES.map((theme) => `public/media/works/${theme.slug}/home-poster.webp`),
-];
+const HOME_POSTERS = THEMES.map((theme) => `public/media/works/${theme.slug}/home-poster.webp`);
 
 const absolute = (relativePath) => resolve(projectRoot, relativePath);
 
@@ -94,10 +106,10 @@ for (const theme of THEMES) {
   assert(sourceVideo?.pix_fmt === 'yuv420p', `${theme.source}: 原片不是 yuv420p。`);
   assert(sourceAudio?.codec_name === 'aac', `${theme.source}: 原片音频不是 AAC。`);
 
-  const detailPath = `public/media/works/${theme.slug}/detail-poster.webp`;
+  const detailPath = `public/media/works/${theme.slug}/${theme.detailFilename || 'detail-poster.webp'}`;
   const detailResult = probe(detailPath);
   const detail = detailResult.streams.find((stream) => stream.codec_type === 'video');
-  assert(detail?.codec_name === 'webp', `${detailPath}: 详情封面不是 WebP。`);
+  assert(detail?.codec_name === (theme.detailCodec || 'webp'), `${detailPath}: 详情封面编码错误。`);
   assert(
     detail?.width === theme.detailSize[0] && detail?.height === theme.detailSize[1],
     `${detailPath}: 详情封面尺寸错误。`,
@@ -118,9 +130,28 @@ for (const theme of THEMES) {
       `${clipPath}: 切片尺寸错误。`,
     );
     assert(Math.abs(parseRate(video?.avg_frame_rate) - theme.fps) < 0.01, `${clipPath}: 切片帧率错误。`);
-    assert(duration >= 5.95 && duration <= 6.05, `${clipPath}: 切片时长不是约 6 秒。`);
+    const expectedDuration = theme.segmentDurations[index - 1];
+    assert(Math.abs(duration - expectedDuration) <= 0.05, `${clipPath}: 切片时长不是约 ${expectedDuration} 秒。`);
     await assertFastStart(clipPath);
   }
+
+  const playbackPath = `public/media/works/${theme.slug}/playback.mp4`;
+  const playbackResult = probe(playbackPath);
+  const playbackVideos = playbackResult.streams.filter((stream) => stream.codec_type === 'video');
+  const playbackAudios = playbackResult.streams.filter((stream) => stream.codec_type === 'audio');
+  const playbackVideo = playbackVideos[0];
+  const playbackAudio = playbackAudios[0];
+  assert(playbackVideos.length === 1 && playbackAudios.length === 1, `${playbackPath}: 完整视频必须各有一个视频流和音频流。`);
+  assert(playbackVideo?.codec_name === 'h264' && playbackVideo?.profile === 'High', `${playbackPath}: 完整视频不是 H.264 High。`);
+  assert(playbackVideo?.pix_fmt === 'yuv420p', `${playbackPath}: 完整视频不是 yuv420p。`);
+  assert(playbackVideo?.width === 1920 && playbackVideo?.height === 1080, `${playbackPath}: 完整视频不是 1920×1080。`);
+  assert(Math.abs(parseRate(playbackVideo?.avg_frame_rate) - theme.fps) < 0.02, `${playbackPath}: 完整视频帧率错误。`);
+  assert(playbackAudio?.codec_name === 'aac' && playbackAudio?.channels === 2, `${playbackPath}: 完整视频音轨不是双声道 AAC。`);
+  assert(
+    Math.abs(Number(playbackResult.format.duration) - Number(sourceResult.format.duration)) <= 0.1,
+    `${playbackPath}: 完整视频时长与源文件不一致。`,
+  );
+  await assertFastStart(playbackPath);
 
   const audioResult = probe(theme.audio);
   const audioStreams = audioResult.streams.filter((stream) => stream.codec_type === 'audio');
@@ -136,4 +167,3 @@ if (errors.length) {
 }
 
 console.log('FLOWFRAME media verification passed.');
-

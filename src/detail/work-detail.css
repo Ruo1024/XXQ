@@ -571,10 +571,11 @@
 .work-player {
   display: grid;
   place-items: center;
-  background: #050606;
+  background: #000;
   opacity: 0;
   visibility: hidden;
-  transform: scale(1.012);
+  transition: none;
+  outline: none;
 }
 
 .work-player[aria-hidden="false"] {
@@ -586,29 +587,61 @@
 
 .work-player__video {
   display: block;
-  width: min(86vw, 1500px);
-  height: min(80vh, 860px);
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   background: #000;
   object-fit: contain;
 }
 
-.work-player__status {
+.work-player__back {
   position: absolute;
-  top: clamp(28px, 4vh, 46px);
-  left: clamp(34px, 3.2vw, 62px);
-  display: grid;
-  gap: 7px;
-  font-size: 10px;
-  letter-spacing: .19em;
+  top: max(24px, env(safe-area-inset-top));
+  left: max(28px, env(safe-area-inset-left));
+  z-index: 2;
 }
-
-.work-player__status strong { color: #f0b3a2; font-size: 9.5px; }
-.work-player__close { color: #fff; }
+.work-player__back i { transform: rotate(180deg); }
+.work-player__controls {
+  position: absolute;
+  z-index: 2;
+  right: max(32px, env(safe-area-inset-right));
+  bottom: max(28px, env(safe-area-inset-bottom));
+  left: max(32px, env(safe-area-inset-left));
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 8px 18px;
+  color: #fff;
+  border-radius: 4px;
+  background: rgba(0,0,0,.65);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 220ms ease;
+}
+.work-player[data-controls="visible"] .work-player__controls,
+.work-player__controls:has(:focus-visible) { opacity: 1; pointer-events: auto; }
+.work-player__controls button { min-width: 44px; min-height: 44px; color: #fff; font-size: 20px; }
+.work-player__controls input { min-width: 0; height: 44px; accent-color: #f4f0e8; cursor: pointer; }
+.work-player__controls > input { flex: 1; }
+.work-player__volume { display: flex; align-items: center; gap: 12px; font-size: 12px; letter-spacing: .12em; }
+.work-player__volume input { width: clamp(64px, 10vw, 140px); }
+.work-player__controls :focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.work-player-wipe { position: fixed; inset: 0; z-index: 50; overflow: hidden; pointer-events: auto; }
+.work-player-wipe__disc { position: absolute; border-radius: 50%; background: #0a0b0b; will-change: transform, opacity; }
+.work-detail:has(.work-player-wipe:not([hidden])) .work-navi { transition: none; }
+body[data-full-video="true"] #flowframeControlRoot { visibility: hidden; pointer-events: none; }
 
 .work-player__missing {
+  position: relative;
   display: grid;
   gap: 14px;
   text-align: center;
+  max-width: calc(100% - 48px);
+  padding: 18px 24px;
+  background: rgba(0,0,0,.7);
+  font-size: 16px;
+  pointer-events: none;
 }
 
 .work-player__missing strong { font-family: Georgia, serif; font-size: 52px; font-weight: 400; }

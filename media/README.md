@@ -25,6 +25,10 @@ GitHub 仓库不直接保存这些成品二进制。新检出可运行 `pnpm fet
 - `public/media/works/{cigarette-and-her,eva,kaguya,liz-and-blue-bird,ave-mujica}/`
 - `public/media/audio/{cigarette-and-her,eva,kaguya,liz-and-blue-bird,ave-mujica}-bgm.m4a`
 
-各作品目录包含主页封面、详情封面和三个无声测试片段。EVA 按用户要求保留完整 16:9 画面及 Bilibili/上传者水印；其他主题按人工检查结果去除稳定的上下空白和字幕区。
+各作品目录包含主页封面、详情封面、一个带原音轨的完整 1080p 播放版，以及三个无声测试片段。详情背景只循环使用三个片段；用户点击 PLAY 后才加载完整播放版。EVA 按用户要求保留完整 16:9 画面及 Bilibili/上传者水印；其他主题的背景片段按人工检查结果去除稳定的上下空白和字幕区。
+
+运行 `pnpm prepare:publish-media` 可从 `media/source/` 中的原视频和发布母版重新生成发布文件。完整视频始终从 4K 原片压缩；封面和背景片段从 `media/source/publish-posters/`、`media/source/publish-segments/` 的母版生成，不把上次发布输出再次当作输入。统一使用 H.264 High、slow、animation 调优、`yuv420p` 和 faststart。完整视频分别使用 CRF32、30、38、43、40，并保留双声道 AAC 音轨；15 个背景片段使用独立的 `FLOWFRAME_PREVIEW_CRF` 默认28，保持无声，最低实测样本 SSIM 约0.97。
+
+控制台或 Studio 中选择的 IndexedDB 本地文件只用于浏览器预览与配置。浏览器不会自动执行 ffmpeg。把这些文件正式发布前，仍需放入可追溯的源目录并运行发布压缩与校验命令。
 
 加工参数、哈希、官方来源和素材状态以根目录 `ASSET_REPORT.md` 及 `output/qa/processed-media/*/processing-report.json` 为准。未经许可核验，以上文件全部是 `placeholder`。

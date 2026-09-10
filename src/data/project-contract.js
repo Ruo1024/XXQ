@@ -39,6 +39,7 @@ const BASE_WORKS = [
     accent: '#90aa9b',
     poster: '/media/works/cigarette-and-her/home-poster.webp',
     detailStill: '/media/works/cigarette-and-her/detail-poster.jpg',
+    videoSrc: '/media/works/cigarette-and-her/playback.mp4',
     audioSrc: '/media/audio/cigarette-and-her-bgm.m4a',
     audioStatus: ASSET_STATUS.placeholder,
     mediaNote: '《ヤニねこ》官方主视觉与用户指定 MAD 测试片段；授权尚未完成核验。',
@@ -63,6 +64,7 @@ const BASE_WORKS = [
     accent: '#559bc1',
     poster: '/media/works/eva/home-poster.webp',
     detailStill: '/media/works/eva/detail-poster.webp',
+    videoSrc: '/media/works/eva/playback.mp4',
     audioSrc: '/media/audio/eva-bgm.m4a',
     audioStatus: ASSET_STATUS.placeholder,
     mediaNote: '官方 EVA 海报与用户指定 Bilibili MAD 派生测试媒体；右上水印按用户要求保留。',
@@ -87,6 +89,7 @@ const BASE_WORKS = [
     accent: '#de8d9d',
     poster: '/media/works/kaguya/home-poster.webp',
     detailStill: '/media/works/kaguya/detail-poster.webp',
+    videoSrc: '/media/works/kaguya/playback.mp4',
     audioSrc: '/media/audio/kaguya-bgm.m4a',
     audioStatus: ASSET_STATUS.placeholder,
     mediaNote: '《超かぐや姫！》官方主视觉与用户指定 Bilibili MAD 派生测试媒体。',
@@ -111,6 +114,7 @@ const BASE_WORKS = [
     accent: '#83bbc0',
     poster: '/media/works/liz-and-blue-bird/home-poster.webp',
     detailStill: '/media/works/liz-and-blue-bird/detail-poster.webp',
+    videoSrc: '/media/works/liz-and-blue-bird/playback.mp4',
     audioSrc: '/media/audio/liz-and-blue-bird-bgm.m4a',
     audioStatus: ASSET_STATUS.placeholder,
     mediaNote: '《利兹与青鸟》官方主视觉与用户指定 Bilibili MAD 派生测试媒体。',
@@ -135,6 +139,7 @@ const BASE_WORKS = [
     accent: '#915b9b',
     poster: '/media/works/ave-mujica/home-poster.webp',
     detailStill: '/media/works/ave-mujica/detail-poster.webp',
+    videoSrc: '/media/works/ave-mujica/playback.mp4',
     audioSrc: '/media/audio/ave-mujica-bgm.m4a',
     audioStatus: ASSET_STATUS.placeholder,
     mediaNote: '《BanG Dream! Ave Mujica》官方主视觉与用户指定 Bilibili MAD 派生测试媒体。',
@@ -224,7 +229,6 @@ const WORK_DETAIL_PROFILES = Object.freeze({
 
 export const DEFAULT_WORKS = Object.freeze(BASE_WORKS.map((work, index) => {
   const profile = WORK_DETAIL_PROFILES[work.id];
-  const primaryClip = work.clips[0];
   return Object.freeze({
     ...work,
     number: String(index + 1).padStart(3, '0'),
@@ -238,10 +242,10 @@ export const DEFAULT_WORKS = Object.freeze(BASE_WORKS.map((work, index) => {
     transitionMood: profile.transitionMood,
     coverImage: work.poster,
     posterSrc: work.detailStill || work.poster,
-    videoSrc: primaryClip?.src || '',
+    videoSrc: String(work.videoSrc || ''),
     audioSrc: String(work.audioSrc || ''),
     coverStatus: work.posterStatus,
-    videoStatus: primaryClip?.status || ASSET_STATUS.missing,
+    videoStatus: work.videoSrc ? ASSET_STATUS.placeholder : ASSET_STATUS.missing,
     audioStatus: work.audioStatus || (work.audioSrc ? ASSET_STATUS.placeholder : ASSET_STATUS.missing),
     mediaNote: String(work.mediaNote || '未完成授权核验的测试媒体，仅用于本地视觉与交互验证。'),
     mediaFocalPoint: work.mediaFocalPoint || '58% 50%',
@@ -250,7 +254,7 @@ export const DEFAULT_WORKS = Object.freeze(BASE_WORKS.map((work, index) => {
 }));
 
 export const createDefaultProject = () => ({
-  version: 5,
+  version: 6,
   title: 'FLOWFRAME',
   assetNotice: 'PLACEHOLDER MEDIA',
   motion: { ...DEFAULT_MOTION },
@@ -288,16 +292,16 @@ export const resolveWorkMedia = (work) => {
   const clipSources = Array.isArray(work?.clips)
     ? work.clips.map((clip) => String(clip?.src || '')).filter(Boolean)
     : [];
-  const videoSrc = String(work?.videoSrc || clipSources[0] || '');
-  const sources = [...new Set([videoSrc, ...clipSources].filter(Boolean))];
+  const sources = [...new Set(clipSources)];
+  const previewSrc = sources[0] || '';
 
-  if (videoSrc) {
+  if (previewSrc) {
     return {
       type: 'video',
-      src: videoSrc,
+      src: previewSrc,
       sources,
       poster: String(work.posterSrc || work.coverImage || ''),
-      status: normalizeAssetStatus(work.videoStatus),
+      status: normalizeAssetStatus(work.clips?.find((clip) => clip?.src)?.status),
     };
   }
   if (work?.posterSrc) {
@@ -319,6 +323,15 @@ export const resolveWorkMedia = (work) => {
     };
   }
   return { type: 'fallback', src: '', sources: [], poster: '', status: ASSET_STATUS.missing };
+};
+
+export const resolveWorkPlayback = (work) => {
+  const src = String(work?.videoSrc || '');
+  return {
+    src,
+    poster: String(work?.posterSrc || work?.coverImage || ''),
+    status: src ? normalizeAssetStatus(work?.videoStatus) : ASSET_STATUS.missing,
+  };
 };
 
 export const sanitizeProject = (input) => {
@@ -343,7 +356,6 @@ export const sanitizeProject = (input) => {
             note: String(clip.note || ''),
           }))
         : [];
-      const primaryClip = clips.find((clip) => clip.src) || clips[0];
       const coverImage = migrateLegacyPoster(
         work.coverImage ?? work.poster ?? base.coverImage ?? base.poster ?? '',
         base.coverImage ?? base.poster,
@@ -352,11 +364,14 @@ export const sanitizeProject = (input) => {
         work.posterSrc ?? work.poster ?? work.coverImage ?? base.posterSrc ?? coverImage,
         base.posterSrc ?? base.coverImage ?? base.poster,
       );
-      const videoSrc = String(work.videoSrc ?? primaryClip?.src ?? '');
+      const videoSrc = String(work.videoSrc ?? '');
       const audioSrc = String(work.audioSrc ?? base.audioSrc ?? '');
       const posterStatus = normalizeAssetStatus(work.posterStatus, base.posterStatus);
       const coverStatus = normalizeAssetStatus(work.coverStatus, posterStatus);
-      const videoStatus = normalizeAssetStatus(work.videoStatus, primaryClip?.status || ASSET_STATUS.missing);
+      const videoStatus = normalizeAssetStatus(
+        work.videoStatus,
+        videoSrc ? base.videoStatus || ASSET_STATUS.placeholder : ASSET_STATUS.missing,
+      );
       const audioStatus = normalizeAssetStatus(
         work.audioStatus,
         audioSrc ? base.audioStatus || ASSET_STATUS.placeholder : ASSET_STATUS.missing,
