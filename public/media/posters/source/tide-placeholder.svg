@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1440" viewBox="0 0 1080 1440">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d9e4e5"/><stop offset=".5" stop-color="#819fab"/><stop offset="1" stop-color="#263d4b"/></linearGradient></defs>
+  <rect width="1080" height="1440" fill="url(#bg)"/>
+  <circle cx="300" cy="344" r="230" fill="#f7f4e9" opacity=".9"/>
+  <g fill="none" stroke="#edf4f3" stroke-width="4" opacity=".58"><path d="M-90 660c210-96 373-88 512 23s320 121 748 2"/><path d="M-130 750c250-90 437-71 561 44s333 113 756 1"/><path d="M-110 850c256-94 450-76 574 37s320 112 706 13"/></g>
+  <path d="M480 416l26-63 23 63 64 26-64 22-23 65-26-65-65-22z" fill="#fff" opacity=".88"/>
+  <path d="M0 1000c236-76 449-51 640 78 159 107 306 94 440 44v318H0z" fill="#142b39" opacity=".72"/>
+  <g fill="#f7f4e9"><rect x="62" y="64" width="2" height="156"/><rect x="62" y="64" width="156" height="2"/></g>
+  <text x="62" y="1260" fill="#f7f4e9" font-family="Helvetica,Arial,sans-serif" font-size="19" letter-spacing="8">ANIMATION STUDY 02</text>
+  <text x="62" y="1330" fill="#f7f4e9" font-family="Georgia,serif" font-size="58" letter-spacing="3">TIDAL SIGNAL</text>
+  <rect x="62" y="1364" width="956" height="38" fill="#f7f4e9" opacity=".9"/>
+  <text x="540" y="1390" fill="#19303c" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="15" letter-spacing="7">PLACEHOLDER MEDIA</text>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1440" viewBox="0 0 1080 1440">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#d7c7c1"/><stop offset=".5" stop-color="#f3e6dd"/><stop offset="1" stop-color="#8c9da4"/></linearGradient>
+    <radialGradient id="sun"><stop stop-color="#fff9eb"/><stop offset=".65" stop-color="#e5a08b"/><stop offset="1" stop-color="#d48679" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1080" height="1440" fill="url(#sky)"/>
+  <circle cx="755" cy="500" r="310" fill="url(#sun)"/>
+  <path d="M0 1050L170 910l120 54 155-188 151 114 137-79 160 126 187-50v553H0z" fill="#697a80" opacity=".72"/>
+  <path d="M0 1140l250-80 210 85 230-58 390 112v241H0z" fill="#f3efe9" opacity=".88"/>
+  <path d="M520 510c35-18 55-42 62-73 8 35 31 58 68 73-37 12-60 34-68 67-8-32-29-54-62-67z" fill="#fff" opacity=".78"/>
+  <g fill="#242628"><rect x="62" y="64" width="2" height="156"/><rect x="62" y="64" width="156" height="2"/></g>
+  <text x="62" y="1260" fill="#242628" font-family="Helvetica,Arial,sans-serif" font-size="19" letter-spacing="8">ANIMATION STUDY 01</text>
+  <text x="62" y="1330" fill="#242628" font-family="Georgia,serif" font-size="58" letter-spacing="3">SUNSET AIRLINE</text>
+  <rect x="62" y="1364" width="956" height="38" fill="#242628" opacity=".86"/>
+  <text x="540" y="1390" fill="#fff" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="15" letter-spacing="7">PLACEHOLDER MEDIA</text>
+</svg>

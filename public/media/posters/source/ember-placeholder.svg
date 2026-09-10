@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1440" viewBox="0 0 1080 1440">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#2c2427"/><stop offset=".58" stop-color="#5a2f31"/><stop offset="1" stop-color="#171619"/></linearGradient><radialGradient id="fire"><stop stop-color="#ffe1a7"/><stop offset=".3" stop-color="#ef936f"/><stop offset="1" stop-color="#9f4f45" stop-opacity="0"/></radialGradient></defs>
+  <rect width="1080" height="1440" fill="url(#bg)"/>
+  <circle cx="710" cy="510" r="330" fill="url(#fire)"/>
+  <g fill="#f6b38b" opacity=".72"><circle cx="162" cy="478" r="5"/><circle cx="238" cy="392" r="10"/><circle cx="346" cy="555" r="4"/><circle cx="457" cy="352" r="8"/><circle cx="854" cy="345" r="6"/><circle cx="922" cy="657" r="9"/></g>
+  <path d="M250 1050l180-504 102 168 98-292 204 628z" fill="#19171a" opacity=".88"/>
+  <path d="M0 1120l256-90 197 78 207-62 420 101v293H0z" fill="#21191d"/>
+  <g fill="#f7e8dc"><rect x="62" y="64" width="2" height="156"/><rect x="62" y="64" width="156" height="2"/></g>
+  <text x="62" y="1260" fill="#f7e8dc" font-family="Helvetica,Arial,sans-serif" font-size="19" letter-spacing="8">ANIMATION STUDY 03</text>
+  <text x="62" y="1330" fill="#f7e8dc" font-family="Georgia,serif" font-size="58" letter-spacing="3">DARKFIRE ARCHIVE</text>
+  <rect x="62" y="1364" width="956" height="38" fill="#f7e8dc" opacity=".92"/>
+  <text x="540" y="1390" fill="#3d2427" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="15" letter-spacing="7">PLACEHOLDER MEDIA</text>
+</svg>

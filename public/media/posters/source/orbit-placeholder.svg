@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1440" viewBox="0 0 1080 1440">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ebe6ee"/><stop offset=".55" stop-color="#a69bb3"/><stop offset="1" stop-color="#433e50"/></linearGradient><radialGradient id="moon"><stop stop-color="#fff"/><stop offset="1" stop-color="#ddd5e6"/></radialGradient></defs>
+  <rect width="1080" height="1440" fill="url(#bg)"/>
+  <circle cx="512" cy="510" r="168" fill="url(#moon)" opacity=".94"/>
+  <g fill="none" stroke="#f7f3fa" opacity=".64"><ellipse cx="512" cy="510" rx="390" ry="128" stroke-width="4" transform="rotate(-18 512 510)"/><ellipse cx="512" cy="510" rx="475" ry="182" stroke-width="2" transform="rotate(20 512 510)"/></g>
+  <g fill="#fff"><circle cx="827" cy="284" r="7"/><circle cx="176" cy="382" r="5"/><circle cx="926" cy="739" r="4"/><circle cx="255" cy="740" r="9"/></g>
+  <path d="M0 1040l180-71 173 65 180-102 224 122 323-78v464H0z" fill="#363241" opacity=".8"/>
+  <path d="M0 1140l270-79 224 91 203-48 383 93v243H0z" fill="#eae5eb" opacity=".9"/>
+  <g fill="#302d39"><rect x="62" y="64" width="2" height="156"/><rect x="62" y="64" width="156" height="2"/></g>
+  <text x="62" y="1260" fill="#302d39" font-family="Helvetica,Arial,sans-serif" font-size="19" letter-spacing="8">ANIMATION STUDY 06</text>
+  <text x="62" y="1330" fill="#302d39" font-family="Georgia,serif" font-size="58" letter-spacing="3">ORBITAL CUTS</text>
+  <rect x="62" y="1364" width="956" height="38" fill="#302d39" opacity=".88"/>
+  <text x="540" y="1390" fill="#fff" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="15" letter-spacing="7">PLACEHOLDER MEDIA</text>
+</svg>

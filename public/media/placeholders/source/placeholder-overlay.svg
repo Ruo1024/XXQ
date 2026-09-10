@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+  <rect x="28" y="478" width="414" height="36" fill="#111" fill-opacity=".58"/>
+  <text x="47" y="502" fill="#fff" font-family="Helvetica,Arial,sans-serif" font-size="15" letter-spacing="5">PLACEHOLDER MEDIA / MOTION STUDY</text>
+  <path d="M28 48V28h20M912 28h20v20M28 492v20h20M932 492v20h-20" fill="none" stroke="#fff" stroke-opacity=".4"/>
+</svg>
