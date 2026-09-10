@@ -1,0 +1,145 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600&family=Noto+Serif+SC:wght@300;400;500&display=swap');
+
+:root {
+  color: #262831;
+  background: #edf0f3;
+  font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --shell-serif: 'Noto Serif SC', 'Songti SC', serif;
+  --shell-sans: 'Noto Sans SC', 'PingFang SC', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+}
+
+#flowframeControlRoot {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  pointer-events: none;
+}
+
+#flowframeControlRoot > * {
+  pointer-events: auto;
+}
+
+html,
+body {
+  overflow: hidden;
+  background: #edf0f3;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #313541;
+  outline-offset: 3px;
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+  isolation: isolate;
+}
+
+.desktop-guard {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  place-items: center;
+  padding: 32px;
+  background: rgba(239, 242, 245, 0.96);
+  color: #272a32;
+  backdrop-filter: blur(18px);
+}
+
+.is-desktop-too-narrow .desktop-guard {
+  display: grid;
+}
+
+.desktop-guard__panel {
+  width: min(520px, 100%);
+  text-align: center;
+}
+
+.desktop-guard__panel p,
+.route-error > p {
+  margin: 0 0 16px;
+  color: #747985;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+}
+
+.desktop-guard__panel h1,
+.route-error h1 {
+  margin: 0 0 14px;
+  font-family: var(--shell-serif);
+  font-size: clamp(30px, 5vw, 52px);
+  font-weight: 400;
+}
+
+.desktop-guard__panel span,
+.route-error span {
+  color: #6e737e;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.route-error {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  padding: 48px;
+  text-align: center;
+  background: #edf0f3;
+}
+
+.route-error button {
+  margin-top: 28px;
+  padding: 12px 22px;
+  border: 1px solid rgba(39, 42, 50, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #272a32;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

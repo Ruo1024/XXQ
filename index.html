@@ -3,117 +3,37 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FLOWFRAME Anime Mix Gallery</title>
+    <meta name="theme-color" content="#eef0f2" />
+    <meta
+      name="description"
+      content="FLOWFRAME：桌面端沉浸式影像作品画廊与转场动效试验。"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="FLOWFRAME — Motion Gallery" />
+    <meta
+      property="og:description"
+      content="进入由影像、声音与空间转场构成的桌面端沉浸式作品画廊。"
+    />
+    <meta property="og:image" content="/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="FLOWFRAME — Motion Gallery" />
+    <meta
+      name="twitter:description"
+      content="进入由影像、声音与空间转场构成的桌面端沉浸式作品画廊。"
+    />
+    <meta name="twitter:image" content="/og.png" />
+    <title>FLOWFRAME — Motion Gallery</title>
   </head>
   <body>
-    <canvas id="galleryCanvas" aria-label="3D 立体画廊"></canvas>
-
-    <header class="topbar">
-      <a class="brand" href="#/" aria-label="返回画廊">
-        <span class="brand-mark"></span>
-        <span>FLOWFRAME</span>
-      </a>
-      <nav class="topnav" aria-label="主导航">
-        <a href="#gallery">Gallery</a>
-      </nav>
-      <button class="icon-button" id="soundToggle" type="button" aria-label="声音开关" title="声音开关">
-        <i data-lucide="volume-2"></i>
-      </button>
-    </header>
-
-    <main id="top" class="experience-shell">
-      <section class="intro-panel" id="gallery">
-        <p class="kicker">Anime mix archive</p>
-        <h1>影像混剪封面廊</h1>
-        <p>
-          以动漫封面和人物视觉作为入口，先聚焦海报，再进入对应混剪的沉浸式放映界面。
-        </p>
-        <button class="primary-action" id="openActiveWork" type="button">
-          <i data-lucide="play"></i>
-          <span>聚焦当前封面</span>
-        </button>
-      </section>
-
-      <aside class="work-panel" id="collection" aria-live="polite">
-        <p class="work-index" id="workIndex">01 / 06</p>
-        <h2 id="workTitle">Loading</h2>
-        <p id="workMeta">AMV archive</p>
-        <p id="workDescription"></p>
-        <div class="work-tags" id="workTags"></div>
-      </aside>
-
-      <aside class="progress-rail" aria-label="作品进度">
-        <div class="rail-line"><span id="railProgress"></span></div>
-        <div class="rail-items" id="railItems"></div>
-      </aside>
-    </main>
-
-    <div class="focus-enter-hint" id="focusEnterHint" aria-hidden="true">
-      <span>ENTER MIX</span>
-    </div>
-
-    <section class="detail-page" id="detailPage" aria-live="polite" aria-hidden="true">
-      <div class="work-visual-stage" id="workVisualStage">
-        <div class="work-media-layer is-active" id="workMediaCurrent"></div>
-        <div class="work-media-layer" id="workMediaNext"></div>
-        <div class="work-visual-mask" id="workVisualMask"></div>
+    <div id="app" aria-live="polite"></div>
+    <div id="flowframeControlRoot"></div>
+    <aside class="desktop-guard" id="desktopGuard" aria-hidden="true">
+      <div class="desktop-guard__panel">
+        <p>DESKTOP EXPERIENCE</p>
+        <h1>请放大浏览器窗口</h1>
+        <span>这个项目只制作电脑端。建议窗口宽度至少为 1180 像素。</span>
       </div>
-
-      <header class="work-hud work-hud-top">
-        <a class="work-back" id="detailBack" href="#/" aria-label="返回画廊">
-          <span>FLOWFRAME</span>
-          <small>All Frames</small>
-        </a>
-        <button class="work-sound" id="detailSound" type="button">Sound Off</button>
-      </header>
-
-      <main class="work-copy" id="workCopy">
-        <div class="work-copy-header">
-          <span id="detailKicker">#001</span>
-          <span id="detailCategory">AMV / anime mix</span>
-        </div>
-        <h2 id="detailTitle">Loading</h2>
-        <p id="detailLogline"></p>
-        <div class="work-actions">
-          <button class="work-play" id="detailPlay" type="button" aria-label="播放混剪">
-            <span>PLAY</span>
-          </button>
-          <button class="work-info-button" id="detailInfoToggle" type="button">information</button>
-        </div>
-      </main>
-
-      <nav class="work-navi" aria-label="作品切换">
-        <button class="work-nav work-nav-prev" id="detailPrev" type="button">
-          <span>Prev</span>
-          <strong id="detailPrevTitle"></strong>
-        </button>
-        <span class="work-count" id="detailCount">001 / 006</span>
-        <button class="work-nav work-nav-next" id="detailNext" type="button">
-          <span>Next</span>
-          <strong id="detailNextTitle"></strong>
-        </button>
-      </nav>
-
-      <aside class="work-info" id="workInfo" aria-hidden="true">
-        <button class="work-info-close" id="detailInfoClose" type="button">Back</button>
-        <p class="work-info-index" id="detailInfoIndex">#001 / INFO</p>
-        <h3 id="detailInfoTitle">Mix Notes</h3>
-        <p id="detailInfoDescription"></p>
-        <h4>Frame Notes</h4>
-        <div class="work-frame-notes" id="detailFrameStrip"></div>
-        <h4>Mix Direction</h4>
-        <p id="detailDirection"></p>
-      </aside>
-
-      <div class="work-player" id="workPlayer" aria-hidden="true">
-        <button class="work-player-close" id="detailPlayerClose" type="button">Close</button>
-        <span id="detailPlayerStatus">Playing preview</span>
-      </div>
-    </section>
-
-    <div class="hover-label" id="hoverLabel" aria-hidden="true"></div>
-
-    <div class="scroll-spacer" aria-hidden="true"></div>
+    </aside>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

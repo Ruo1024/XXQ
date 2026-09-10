@@ -18,6 +18,9 @@ importers:
         specifier: ^0.185.1
         version: 0.185.1
     devDependencies:
+      '@openai/sites-vite-plugin':
+        specifier: ^0.2.0
+        version: 0.2.0(vite@8.1.3)
       playwright:
         specifier: ^1.61.1
         version: 1.61.1
@@ -44,6 +47,12 @@ packages:
     peerDependencies:
       '@emnapi/core': ^1.7.1
       '@emnapi/runtime': ^1.7.1
+
+  '@openai/sites-vite-plugin@0.2.0':
+    resolution: {integrity: sha512-4ThLMW9eaf2gd+SqBwHmqBONKBAbQ2BuOFev7mHq7Y2W5mm/rfVJOSjcgQIsY2PqdXxXNZ4Yd0+s0DlSUYehag==}
+    engines: {node: '>=22.13.0'}
+    peerDependencies:
+      vite: ^8.0.0
 
   '@oxc-project/types@0.138.0':
     resolution: {integrity: sha512-1a7ZKmrRTCoN1XMZ4L0PyyqrMnrNlLyPuOkdSX2MZg7IiIGRUyurNhAm73ptDOraoBcIordsIGKNPKUzy3ZmfA==}
@@ -368,6 +377,10 @@ snapshots:
       '@emnapi/runtime': 1.11.1
       '@tybys/wasm-util': 0.10.3
     optional: true
+
+  '@openai/sites-vite-plugin@0.2.0(vite@8.1.3)':
+    dependencies:
+      vite: 8.1.3
 
   '@oxc-project/types@0.138.0': {}
 

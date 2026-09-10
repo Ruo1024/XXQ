@@ -1,67 +1,57 @@
-# FLOWFRAME Anime Mix Gallery
+# FLOWFRAME
 
-一个 Web 端动漫混剪封面画廊原型：主页以 3D 海报廊组织封面，聚焦后可进入对应混剪展示页。
+FLOWFRAME 是一个只面向电脑端的动漫影像作品集。主页使用连续 Three.js 空间中的海报、可变形节点网络和动态连线；作品详情使用滚轮连续驱动的 WebGL 双纹理影像、PLAY、INFO 和 Prev/Next。默认作品集为 5 部，Studio 与全局控制台仍允许扩展到最多 6 部。
 
-## 已实现
+## 当前路由
 
-- Three.js 全屏 3D 动漫封面画廊
-- GSAP ScrollTrigger 滚动镜头叙事和短路径跳转
-- Raycaster 封面悬停、发光、第一次点击聚焦
-- 聚焦后第二次点击封面中心进入 `#/works/:id` 全屏影像作品页
-- 详情页采用底层视频/封面常驻、文字和导航浮在上方的作品页结构
-- `PLAY` 会进入沉浸播放状态，`INFO` 面板承载关键帧和混剪方向说明
-- 视频素材未填入时使用生成式全屏海报和氛围背景占位
-- 预留 `coverImage`、`posterSrc`、`videoSrc`、`shortDescription`、`infoDescription`、`frameNotes` 数据字段
-- 大跨度作品跳转短路径镜头
-- 聚焦卡片鼠标方向跟随微交互
-- 响应式桌面与移动端布局
-- 声音开关与轻量交互反馈
+- `#/`：方案 1 风格的正式主页。
+- `#/works/:id`：五个默认作品的全屏详情。
+- `#/lab/transition`：三片段转场试验。
+- `#/studio`：作品数据和动效参数调节。
 
-## 在线地址
+左上角圆形控制按钮在首页和详情页之间持续保留。MOTION 页提供 36 个关键参数，采用可读双列分组和面板内滚动；MEDIA 页一次编辑一个作品和一个片段，并支持海报、短片、音乐的路径或本地文件 CRUD。本地文件存入当前浏览器 IndexedDB，JSON 导出不包含二进制。
 
-GitHub Pages 部署后访问：
+窄于 1180px 时显示电脑端提示；项目不开发完整手机页面。
 
-```text
-https://ruo1024.github.io/XXQ/
-```
+## 需求与设计依据
 
-## 运行
+- 唯一产品与设计要求：`docs/PRODUCT_AND_DESIGN_REQUIREMENTS.md`
+- 详情实现规范：`docs/DETAIL_EXPERIENCE_SPEC.md`
+- 参考图索引：`docs/references/REFERENCE_INDEX.md`
+- 素材状态：`ASSET_REPORT.md`
+- 最新视觉检查：`design-qa.md`
+
+## 本地运行
 
 ```bash
 pnpm install
+pnpm fetch:pages-media
 pnpm dev
 ```
 
-如果当前 shell 找不到 `node`，可先使用本机 Codex 运行时：
+GitHub 仓库不保存约 71 MB 的成品媒体二进制。`fetch:pages-media` 会从当前公开 FLOWFRAME 站点下载同一批海报、视频和音频，并按 `scripts/pages-assets.sha256` 校验。GitHub Pages 工作流会自动执行这一步；已有完整 `public/media/` 的本地工作区会直接通过校验，不重复下载。
+
+如果当前 shell 找不到 Node，可把 Codex 工作区 Node 加入本次命令的 PATH：
 
 ```bash
-export PATH=/Users/ruo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH
-/Users/ruo/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/pnpm install
-/Users/ruo/.cache/codex-runtimes/codex-primary-runtime/dependencies/bin/pnpm dev
+PATH=/Users/ruo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:$PATH pnpm dev
 ```
 
-## 验证
-
-启动开发服务后，可运行 UI 自动化验证：
+## 构建与自动检查
 
 ```bash
+pnpm build
+pnpm verify:media
 pnpm verify:ui
 ```
 
-该脚本会检查桌面端和移动端截图、卡片是否被裁切、镜头跳转是否平滑、聚焦卡片是否完整显示。
-同时会验证第一次点击聚焦、第二次点击进入详情页、详情页全屏媒体层、`PLAY`、`INFO`、连续作品切换和 `Escape` 返回流程。
+`verify:ui` 会检查主页画框吸附、网络三维形态切换、全局控制台、IndexedDB 媒体持久化、五作品详情、多片段背景循环、默认声音解锁、连续滚动、PLAY 墨滴、INFO 后台继续播放、Escape、hash、刷新恢复、WebGL 回退、reduced-motion、Studio、三片段 Lab、电脑端提示和主要桌面视口。可用 `VERIFY_SCOPE=home|control|detail|studio|transition|guard` 单独运行一组。
 
-## 素材替换
+## 素材
 
-后续可把素材放入 `public/media/works/<id>/`，再在 `src/main.js` 的 `works` 数据中填写：
+- 当前官方动漫海报、Bilibili 派生测试片段和 BGM 均为 `placeholder`；旧 AI 画面只保留为旧配置回退。
+- 页面必须持续显示 `PLACEHOLDER MEDIA`，直到素材被明确升级为 `final`。
+- 每部作品的 `clips` 组成背景和 PLAY 的循环播放列表；`videoSrc` 保留为第一片段兼容字段。
+- 媒体选择顺序为 `clips/videoSrc > posterSrc > coverImage > fallback`。
 
-- `coverImage`：主页封面或人物插画
-- `posterSrc`：详情页视频封面
-- `videoSrc`：混剪视频文件
-- `shortDescription`：详情页首屏短说明
-- `infoDescription`：INFO 面板说明
-- `frameNotes`：关键帧时间码和注释
-
-## 部署
-
-推送到 `main` 后，GitHub Actions 会自动构建并部署到 GitHub Pages。部署配置在 `.github/workflows/deploy-pages.yml`。
+不要修改或提交 `.claude/` 与 `XXQ本地资料/`。未经用户明确要求，不提交、不推送、不发布。

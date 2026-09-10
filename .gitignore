@@ -3,3 +3,9 @@ dist/
 output/
 .DS_Store
 *.log
+.claude/
+XXQ本地资料/
+media/source/
+public/media/
+public/og.png
+docs/references/*.png
