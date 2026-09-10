@@ -1,4 +1,5 @@
 import { sanitizeProject } from './project-contract.js';
+import { resolvePublicAssetUrl } from './public-asset-url.js';
 
 const clone = (value) => {
   if (typeof structuredClone === 'function') return structuredClone(value);
@@ -34,12 +35,15 @@ export const collectLocalAssetReferences = (project) => {
 
 export const hydrateProjectAssets = async (project, assetStore) => {
   const canonical = sanitizeProject(project);
-  if (!assetStore?.resolve) return canonical;
-
   const runtime = clone(canonical);
   const jobs = [];
   const resolveField = (target, key) => {
-    if (!target || !isLocalAssetReference(target[key])) return;
+    if (!target) return;
+    if (!isLocalAssetReference(target[key])) {
+      target[key] = resolvePublicAssetUrl(target[key]);
+      return;
+    }
+    if (!assetStore?.resolve) return;
     const reference = target[key];
     jobs.push(Promise.resolve(assetStore.resolve(reference)).then((resolved) => {
       target[key] = String(resolved || '');
@@ -59,4 +63,3 @@ export const hydrateProjectAssets = async (project, assetStore) => {
   await Promise.all(jobs);
   return sanitizeProject(runtime);
 };
-

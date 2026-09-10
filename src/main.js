@@ -9,10 +9,15 @@ import { mountWorkDetail } from './detail/work-detail-experience.js';
 import { mountStudio } from './studio/studio.js';
 import { mountControlPanel } from './control/control-panel.js';
 import { backgroundAudio } from './audio/background-audio.js';
+import { resolvePublicAssetUrl } from './data/public-asset-url.js';
 
 const root = document.querySelector('#app');
 const controlRoot = document.querySelector('#flowframeControlRoot');
 const desktopGuard = document.querySelector('#desktopGuard');
+document.documentElement.style.setProperty(
+  '--flowframe-grain-texture',
+  `url("${resolvePublicAssetUrl('/media/textures/grain-placeholder.png')}")`,
+);
 // Studio 是第一检查点保留的正式原型路由；只有显式设为 0 时才关闭。
 const studioEnabled = import.meta.env.VITE_ENABLE_STUDIO !== '0';
 

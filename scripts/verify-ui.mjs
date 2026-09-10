@@ -6,6 +6,8 @@ import { chromium } from 'playwright';
 import { MOTION_FIELDS } from '../src/data/motion-schema.js';
 
 const targetUrl = process.env.TARGET_URL || 'http://127.0.0.1:5173/';
+const targetBasePath = new URL(targetUrl).pathname.replace(/\/$/, '');
+const publicAssetPath = (path) => `${targetBasePath}${path}`;
 const verifyScope = process.env.VERIFY_SCOPE || 'all';
 const shouldVerify = (scope) => verifyScope === 'all' || verifyScope.split(',').includes(scope);
 const currentDir = dirname(fileURLToPath(import.meta.url));
@@ -145,7 +147,7 @@ async function verifyHome(target) {
   })));
   assert(posterSources.length === WORKS.length, '首页海报图片数量与作品数量不一致。');
   WORKS.forEach((work, index) => {
-    assert(posterSources[index]?.src === work.poster, `首页 ${work.id} 海报路径不正确。`);
+    assert(posterSources[index]?.src === publicAssetPath(work.poster), `首页 ${work.id} 海报路径不正确。`);
     assert(posterSources[index]?.naturalWidth > 0 && posterSources[index]?.naturalHeight > 0, `首页 ${work.id} 海报没有成功解码。`);
   });
 

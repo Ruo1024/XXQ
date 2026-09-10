@@ -1,6 +1,8 @@
+import { resolvePublicAssetUrl } from '../data/public-asset-url.js';
+
 const DEFAULT_TRACK = Object.freeze({
   id: 'afterglow',
-  src: '/media/audio/cigarette-and-her-bgm.m4a',
+  src: resolvePublicAssetUrl('/media/audio/cigarette-and-her-bgm.m4a'),
 });
 
 const listeners = new Set();
@@ -98,7 +100,7 @@ const setEnabled = async (enabled) => {
 const setTrack = async (source, { id = '' } = {}) => {
   const nextTrack = {
     id: String(id || 'unassigned'),
-    src: String(source || ''),
+    src: resolvePublicAssetUrl(source),
   };
   if (nextTrack.id === activeTrack.id && nextTrack.src === activeTrack.src) {
     if (requestedOn && activeTrack.src) return playRequestedTrack(trackRevision);

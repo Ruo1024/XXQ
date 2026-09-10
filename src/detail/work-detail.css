@@ -121,7 +121,7 @@
   z-index: 6;
   pointer-events: none;
   opacity: .075;
-  background: url('/media/textures/grain-placeholder.png') center / 320px 320px repeat;
+  background: var(--flowframe-grain-texture, none) center / 320px 320px repeat;
   mix-blend-mode: soft-light;
 }
 
