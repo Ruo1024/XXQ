@@ -279,12 +279,12 @@
   isolation: isolate;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 14px;
+  justify-content: flex-start;
+  gap: 48px;
   width: 424px;
-  height: 68px;
+  height: 128px;
   overflow: hidden;
-  padding: 0 28px;
+  padding: 0 68px 0 36px;
   border: 1px solid rgba(212, 109, 149, 0.24);
   border-radius: 999px;
   color: #783d58;
@@ -304,6 +304,11 @@
 }
 
 .ff-home__sakura-mark {
+  display: grid;
+  flex: 0 0 72px;
+  width: 72px;
+  height: 72px;
+  place-items: center;
   color: #fff8fb;
   font-size: 25px;
   line-height: 1;
@@ -699,7 +704,8 @@
     margin-top: 10px;
   }
 
-  .ff-home__enter {
+  .ff-home__enter,
+  .ff-home__sakura {
     height: 112px;
   }
 
