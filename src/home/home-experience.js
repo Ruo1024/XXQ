@@ -893,10 +893,19 @@ const createMarkup = (project) => `
         <h1 data-home-title>—</h1>
         <p class="ff-home__title-en" data-home-title-en>—</p>
         <p class="ff-home__meta" data-home-meta>—</p>
-        <button class="ff-home__enter" type="button" data-home-enter>
-          <i class="ff-home__enter-icon" data-lucide="play" aria-hidden="true"></i>
-          <span>ENTER MIX</span>
-        </button>
+        <div class="ff-home__actions">
+          <button class="ff-home__enter" type="button" data-home-enter>
+            <i class="ff-home__enter-icon" data-lucide="play" aria-hidden="true"></i>
+            <span>ENTER MIX</span>
+          </button>
+          <button class="ff-home__sakura" type="button" data-home-sakura aria-label="进入春日樱花铁路场景">
+            <span class="ff-home__sakura-petals" aria-hidden="true">
+              <i></i><i></i><i></i><i></i><i></i><i></i>
+            </span>
+            <span class="ff-home__sakura-mark" aria-hidden="true">✿</span>
+            <span>SAKURA RAILWAY</span>
+          </button>
+        </div>
       </section>
 
       <section class="ff-home__gallery" aria-label="作品海报">
@@ -948,7 +957,7 @@ const createPosterMarkup = (work, index) => {
  * 挂载桌面端首页体验。
  * 传入的 root 由应用外壳管理，本模块只清理自己创建的内容和事件。
  */
-export const mountHome = ({ root, project, onOpenWork, onOpenStudio, audioController }) => {
+export const mountHome = ({ root, project, onOpenWork, onOpenStudio, onOpenSakura, audioController }) => {
   if (!(root instanceof HTMLElement)) {
     throw new TypeError('mountHome 需要有效的 root 元素。');
   }
@@ -980,6 +989,7 @@ export const mountHome = ({ root, project, onOpenWork, onOpenStudio, audioContro
   const total = root.querySelector('[data-home-total]');
   const progress = root.querySelector('[data-home-progress]');
   const enter = root.querySelector('[data-home-enter]');
+  const sakura = root.querySelector('[data-home-sakura]');
   const previous = root.querySelector('[data-home-prev]');
   const next = root.querySelector('[data-home-next]');
   const studio = root.querySelector('[data-home-studio]');
@@ -1004,6 +1014,7 @@ export const mountHome = ({ root, project, onOpenWork, onOpenStudio, audioContro
   const unsubscribeSound = audioController?.subscribe?.(updateSoundState) || (() => {});
   const toggleSound = () => audioController?.toggle?.();
   const syncAudioTrack = (work) => audioController?.setTrack?.(work?.audioSrc, { id: work?.id });
+  const openSakura = typeof onOpenSakura === 'function' ? onOpenSakura : () => {};
 
   const openActiveWork = () => {
     const work = works[activeIndex];
@@ -1195,6 +1206,7 @@ export const mountHome = ({ root, project, onOpenWork, onOpenStudio, audioContro
 
   cameraRig.addEventListener('click', onPosterClick);
   enter.addEventListener('click', openActiveWork);
+  sakura.addEventListener('click', openSakura);
   previous.addEventListener('click', () => step(-1));
   next.addEventListener('click', () => step(1));
   soundButton.addEventListener('click', toggleSound);
@@ -1223,6 +1235,7 @@ export const mountHome = ({ root, project, onOpenWork, onOpenStudio, audioContro
       window.clearTimeout(wheelUnlockTimer);
       cameraRig.removeEventListener('click', onPosterClick);
       enter.removeEventListener('click', openActiveWork);
+      sakura.removeEventListener('click', openSakura);
       soundButton.removeEventListener('click', toggleSound);
       unsubscribeSound();
       home.removeEventListener('wheel', onWheel);

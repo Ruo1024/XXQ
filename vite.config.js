@@ -1,5 +1,6 @@
 import { sites } from '@openai/sites-vite-plugin';
 import { defineConfig } from 'vite';
+import { resolve } from 'node:path';
 
 const isGitHubPages = process.env.GITHUB_PAGES === 'true';
 const repositoryName = process.env.GITHUB_REPOSITORY?.split('/').pop() || 'XXQ';
@@ -24,5 +25,11 @@ export default defineConfig({
   ],
   build: {
     outDir: 'dist/client',
+    rollupOptions: {
+      input: {
+        main: resolve(import.meta.dirname, 'index.html'),
+        sakura: resolve(import.meta.dirname, 'sakura.html'),
+      },
+    },
   },
 });

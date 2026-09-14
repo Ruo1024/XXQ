@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#e8eef0" />
+    <meta name="description" content="一方春日樱花铁路。纯代码构建的、可以自由旋转观看的三维微缩模型。" />
+    <link rel="icon" href="data:," />
+    <title>樱花 · 春日小站</title>
+  </head>
+  <body>
+    <canvas id="scene" aria-label="春日樱花铁路微缩模型。拖动旋转，右键拖动平移，滚轮缩放。" tabindex="0"></canvas>
+    <button id="music-toggle" class="music-toggle" type="button" aria-label="播放音乐" aria-pressed="false" title="播放音乐">
+      <span class="music-record" aria-hidden="true"><span class="music-record-label"></span></span>
+      <svg class="music-symbol" viewBox="0 0 24 24" aria-hidden="true">
+        <path class="music-play" d="M9 6.5v11l9-5.5z" />
+        <path class="music-pause" d="M8 7h3v10H8zm5 0h3v10h-3z" />
+      </svg>
+    </button>
+    <script type="module" src="/src/sakura/main.js"></script>
+  </body>
+</html>

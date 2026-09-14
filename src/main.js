@@ -189,6 +189,7 @@ const renderRoute = () => {
       project: runtimeProject,
       onOpenWork: (workId) => navigate(`#/works/${encodeURIComponent(workId)}`),
       onOpenStudio: studioEnabled ? () => navigate('#/studio') : null,
+      onOpenSakura: () => window.location.assign(`${import.meta.env.BASE_URL}sakura.html`),
       audioController: backgroundAudio,
     });
   } catch (error) {
